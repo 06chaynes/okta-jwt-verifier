@@ -1,5 +1,13 @@
 # Okta JWT Verifier for Rust
 
+## Install
+
+Cargo.toml
+
+```toml
+okta-jwt-verifier = { git = "https://gitlab.com/06chaynes/okta-jwt-verifier.git", branch = "master" }
+```
+
 ## Basic Usage
 
 ```rust
