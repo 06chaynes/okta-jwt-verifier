@@ -6,7 +6,7 @@ Cargo.toml
 
 ```toml
 [dependencies]
-okta-jwt-verifier = { git = "https://gitlab.com/06chaynes/okta-jwt-verifier.git", branch = "master" }
+okta-jwt-verifier = "0.1.0"
 ```
 
 ## Basic Usage
