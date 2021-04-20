@@ -31,9 +31,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde::{Deserialize, Serialize};
+    use serde::Deserialize;
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, Deserialize)]
     pub struct Claims {
         pub iss: String,
         pub sub: String,
