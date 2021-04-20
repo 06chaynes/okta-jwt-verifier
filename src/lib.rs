@@ -8,7 +8,7 @@ use serde::de::DeserializeOwned;
 
 pub use self::key::{JWK, JWKS};
 
-type Result<T> = std::result::Result<T, error::Error>;
+pub type Result<T> = std::result::Result<T, error::Error>;
 
 pub async fn verify<T>(issuer: &str, token: &str) -> Result<TokenData<T>>
 where
