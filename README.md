@@ -10,6 +10,12 @@ okta-jwt-verifier = { git = "https://gitlab.com/06chaynes/okta-jwt-verifier.git"
 
 ## Basic Usage
 
+This example attempts to retrieve the keys from the provided Okta authorization server,
+decodes the token header to identify the key id, attempts to find a matching key,
+attempts to decode the token, and finally returns the claims.
+
+This method will attempt to retrieve the keys upon each request.
+
 ```rust
 use okta_jwt_verifier::verify;
 use serde::{Deserialize, Serialize};
@@ -32,6 +38,8 @@ verify::<Claims>(&issuer, &token).await?;
 ```
 
 ## Advanced Usage
+
+This example matches the basic example in function but would allow for caching of the keys
 
 ```rust
 use okta_jwt_verifier::{verify, token, key, JWK, JWKS};
@@ -69,7 +77,7 @@ match jwk {
 
 ### Testing
 
-* Note that this requires an internet connection
+- Note that this requires an internet connection
 
 First copy the example config to a new file:
 
