@@ -1,5 +1,6 @@
 [package]
 name = "okta-jwt-verifier"
+description = "A helper library for working with JWT's for Okta in Rust"
 version = "0.1.0"
 authors = ["Christian Haynes <06chaynes@gmail.com>"]
 repository = "https://gitlab.com/06chaynes/okta-jwt-verifier.git"
