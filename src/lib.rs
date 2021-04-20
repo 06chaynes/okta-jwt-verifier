@@ -1,7 +1,7 @@
 #![allow(dead_code)]
-mod error;
-mod key;
-mod token;
+pub mod error;
+pub mod key;
+pub mod token;
 
 use jsonwebtoken::TokenData;
 use serde::de::DeserializeOwned;
