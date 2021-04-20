@@ -43,7 +43,7 @@ verify::<Claims>(&issuer, &token).await?;
 This example matches the basic example in function but would allow for caching of the keys
 
 ```rust
-use okta_jwt_verifier::{verify, token, key, JWK, JWKS};
+use okta_jwt_verifier::{token, key, JWK, JWKS};
 use jsonwebkey::JsonWebKey;
 use serde::{Deserialize, Serialize};
 
