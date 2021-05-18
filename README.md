@@ -6,7 +6,7 @@ Cargo.toml
 
 ```toml
 [dependencies]
-okta-jwt-verifier = "0.1"
+okta-jwt-verifier = "0.1.1"
 ```
 
 ## Basic Usage
@@ -73,6 +73,16 @@ match jwk {
 }
 
 ```
+
+## Examples
+
+- Tide Middleware (Basic):
+
+  This example implements the basic usage example as tide middleware.
+
+    ```sh
+    ISSUER="https://your.domain/oauth2/default" cargo run --example tide_middleware_basic
+    ```
 
 ## Development
 
