@@ -14,17 +14,15 @@ pub async fn verify<T>(issuer: &str, token: &str) -> Result<TokenData<T>>
 where
     T: DeserializeOwned,
 {
-    let kid: String = token::key_id(&token)?;
-    let jwks: JWKS = key::get(&issuer).await?;
+    let kid: String = token::key_id(token)?;
+    let jwks: JWKS = key::get(issuer).await?;
     let jwk: Option<&JWK> = jwks.where_id(&kid);
     match jwk {
         Some(key_jwk) => {
             let key: jsonwebkey::JsonWebKey = serde_json::to_string(&key_jwk)?.parse()?;
-            return Ok(token::decode::<T>(&token, key).await?);
+            token::decode::<T>(token, key).await
         }
-        None => {
-            return Err(error::Error::Custom("No matching key found!".into()));
-        }
+        None => Err(error::Error::Custom("No matching key found!".into())),
     }
 }
 
