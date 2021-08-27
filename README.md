@@ -6,7 +6,7 @@ Cargo.toml
 
 ```toml
 [dependencies]
-okta-jwt-verifier = "0.1.1"
+okta-jwt-verifier = "0.1.2"
 ```
 
 ## Basic Usage
