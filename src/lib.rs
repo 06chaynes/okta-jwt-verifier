@@ -6,7 +6,7 @@ pub mod token;
 use jsonwebtoken::TokenData;
 use serde::de::DeserializeOwned;
 
-pub use self::key::{JWK, JWKS};
+pub use self::key::{Keys, JWK};
 
 pub type Result<T> = std::result::Result<T, error::Error>;
 
@@ -15,8 +15,8 @@ where
     T: DeserializeOwned,
 {
     let kid: String = token::key_id(token)?;
-    let jwks: JWKS = key::get(issuer).await?;
-    let jwk: Option<&JWK> = jwks.where_id(&kid);
+    let keys: Keys = key::get(issuer).await?;
+    let jwk: Option<&JWK> = keys.jwks.where_id(&kid);
     match jwk {
         Some(key_jwk) => {
             let key: jsonwebkey::JsonWebKey = serde_json::to_string(&key_jwk)?.parse()?;

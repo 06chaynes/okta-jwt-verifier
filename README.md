@@ -6,7 +6,7 @@ Cargo.toml
 
 ```toml
 [dependencies]
-okta-jwt-verifier = "0.1.2"
+okta-jwt-verifier = "0.2.0"
 ```
 
 ## Basic Usage
@@ -43,7 +43,7 @@ verify::<Claims>(&issuer, &token).await?;
 This example matches the basic example in function but would allow for caching of the keys
 
 ```rust
-use okta_jwt_verifier::{token, key, JWK, JWKS};
+use okta_jwt_verifier::{token, key, JWK, Keys};
 use jsonwebkey::JsonWebKey;
 use serde::{Deserialize, Serialize};
 
@@ -62,8 +62,8 @@ let token = "token";
 let issuer = "https://your.domain/oauth2/default";
 
 let kid: String = token::key_id(&token)?;
-let jwks: JWKS = key::get(&issuer).await?;
-let jwk: Option<&JWK> = jwks.where_id(&kid);
+let keys: Keys = key::get(issuer).await?;
+let jwk: Option<&JWK> = keys.jwks.where_id(&kid);
 match jwk {
     Some(key_jwk) => {
         let key: JsonWebKey = serde_json::to_string(&key_jwk)?.parse()?;

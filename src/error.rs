@@ -4,10 +4,14 @@ use thiserror::Error;
 pub enum Error {
     #[error("general io error: {0}")]
     Io(#[from] std::io::Error),
+    #[error("parse int error: {0}")]
+    Int(#[from] std::num::ParseIntError),
     #[error("env error: {0}")]
     Env(#[from] dotenv::Error),
     #[error("uri error: {0}")]
     Uri(#[from] surf::http::url::ParseError),
+    #[error("regex error: {0}")]
+    Regex(#[from] regex::Error),
     #[error("json error: {0}")]
     Json(#[from] serde_json::Error),
     #[error("jwk error: {0}")]
