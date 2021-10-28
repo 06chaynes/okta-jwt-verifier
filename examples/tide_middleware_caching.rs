@@ -9,7 +9,7 @@ use tide::{http::mime::JSON, Request, Response, Result, Server, StatusCode};
 use tide_http_auth::{Authentication, BearerAuthRequest, BearerAuthScheme, Storage};
 
 fn connect() -> std::result::Result<Connection, RedisError> {
-    let client = Client::open("redis://:pasword@host:port")?;
+    let client = Client::open("redis://:password@host:port")?;
     Ok(client.get_connection()?)
 }
 
