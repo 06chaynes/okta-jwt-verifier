@@ -1,5 +1,4 @@
-use okta_jwt_verifier::verify;
-use serde::{Deserialize, Serialize};
+use okta_jwt_verifier::{verify, DefaultClaims};
 use serde_json::json;
 use std::env;
 use tide::{http::mime::JSON, Request, Response, Result, Server, StatusCode};
@@ -10,22 +9,11 @@ pub enum Authenticated {
     User,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct Claims {
-    iss: String,
-    sub: String,
-    scp: Vec<String>,
-    cid: String,
-    uid: String,
-    exp: u64,
-    iat: u64,
-}
-
 #[async_trait::async_trait]
 impl Storage<Authenticated, BearerAuthRequest> for State {
     async fn get_user(&self, req: BearerAuthRequest) -> tide::Result<Option<Authenticated>> {
         let issuer = env::var("ISSUER").expect("You need to provide the ISSUER env variable!");
-        let _tokendata = verify::<Claims>(&issuer, &req.token).await?;
+        let _tokendata = verify::<DefaultClaims>(&issuer, &req.token).await?;
         Ok(Some(Authenticated::User))
     }
 }

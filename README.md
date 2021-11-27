@@ -80,8 +80,14 @@ cp .env_example .env
 ```
 
 Update the ISSUER variable to reflect your environment (authorization host).
-Also set TEST_TOKEN to a JWT to test against, then run the tests.
+Also set TEST_TOKEN to a JWT to test against, then run the tests:
 
 ```sh
 cargo test
+```
+
+Or test with the optional disk cache:
+
+```sh
+cargo test --features disk-cache
 ```

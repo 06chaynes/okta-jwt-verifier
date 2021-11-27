@@ -7,6 +7,7 @@ use jsonwebtoken::TokenData;
 use serde::de::DeserializeOwned;
 
 pub use self::key::{JWK, JWKS};
+pub use self::token::DefaultClaims;
 
 pub type Result<T> = std::result::Result<T, error::Error>;
 
@@ -29,25 +30,13 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde::Deserialize;
-
-    #[derive(Debug, Deserialize)]
-    pub struct Claims {
-        pub iss: String,
-        pub sub: String,
-        pub scp: Vec<String>,
-        pub cid: String,
-        pub uid: String,
-        pub exp: u64,
-        pub iat: u64,
-    }
 
     #[async_std::test]
     async fn can_verify_token() -> Result<()> {
         dotenv::dotenv().ok();
         let issuer = dotenv::var("ISSUER")?;
         let token = dotenv::var("TEST_TOKEN")?;
-        verify::<Claims>(&issuer, &token).await?;
+        verify::<DefaultClaims>(&issuer, &token).await?;
         Ok(())
     }
 }

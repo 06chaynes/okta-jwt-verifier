@@ -1,7 +1,18 @@
 use crate::{error::Error, Result};
 use jsonwebkey::JsonWebKey;
 use jsonwebtoken::{TokenData, Validation};
-use serde::de::DeserializeOwned;
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize)]
+pub struct DefaultClaims {
+    pub iss: String,
+    pub sub: String,
+    pub scp: Vec<String>,
+    pub cid: String,
+    pub uid: String,
+    pub exp: u64,
+    pub iat: u64,
+}
 
 pub fn key_id(token: &str) -> Result<String> {
     let header = jsonwebtoken::decode_header(token)?;
