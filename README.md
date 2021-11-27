@@ -29,6 +29,8 @@ This method will attempt to retrieve the keys upon each request.
 use okta_jwt_verifier::verify;
 use serde::{Deserialize, Serialize};
 
+// You can provide your own Claims struct or use the provided defaults
+// This example matches okta_jwt_verifier::DefaultClaims
 #[derive(Serialize, Deserialize)]
 pub struct Claims {
     pub iss: String,
