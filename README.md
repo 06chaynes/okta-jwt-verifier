@@ -1,6 +1,8 @@
 # okta-jwt-verifier
 
-Okta JWT Verifier for Rust
+![crates.io](https://img.shields.io/crates/v/okta-jwt-verifier.svg)
+
+A helper library for working with JWT's for Okta in Rust
 
 ## Install
 
@@ -68,6 +70,16 @@ okta-jwt-verifier = { version = "0.2.0", features = ["disk-cache"] }
     ```sh
     ISSUER="https://your.domain/oauth2/default" cargo run --example tide_middleware_basic
     ```
+
+## Features
+
+The following features are available. By default no features are enabled.
+
+- `disk-cache`: use a cache on disk to store keys (respects cache-control).
+
+## Documentation
+
+- [API Docs](https://docs.rs/okta-jwt-verifier)
 
 ## Development
 
