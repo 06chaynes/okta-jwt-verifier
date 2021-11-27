@@ -10,8 +10,6 @@ pub enum Error {
     Env(#[from] dotenv::Error),
     #[error("uri error: {0}")]
     Uri(#[from] surf::http::url::ParseError),
-    #[error("regex error: {0}")]
-    Regex(#[from] regex::Error),
     #[error("json error: {0}")]
     Json(#[from] serde_json::Error),
     #[error("jwk error: {0}")]

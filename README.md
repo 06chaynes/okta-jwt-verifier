@@ -1,4 +1,6 @@
-# Okta JWT Verifier for Rust
+# okta-jwt-verifier
+
+Okta JWT Verifier for Rust
 
 ## Install
 
@@ -9,7 +11,13 @@ Cargo.toml
 okta-jwt-verifier = "0.2.0"
 ```
 
-## Basic Usage
+With [cargo add](https://github.com/killercup/cargo-edit#Installation) installed :
+
+```sh
+cargo add okta-jwt-verifier
+```
+
+## Example - Basic Usage
 
 This example attempts to retrieve the keys from the provided Okta authorization server,
 decodes the token header to identify the key id, attempts to find a matching key,
@@ -38,43 +46,18 @@ let issuer = "https://your.domain/oauth2/default";
 verify::<Claims>(&issuer, &token).await?;
 ```
 
-## Advanced Usage
+## Example - Caching
 
-This example matches the basic example in function but would allow for caching of the keys
+This example matches the basic example but would cache the keys on disk. Requires the `disk-cache` feature to be enabled (disabled by default). Creates a `surf-cacache` directory relative to the working directory where the cache files will reside.
 
-```rust
-use okta_jwt_verifier::{token, key, JWK, Keys};
-use jsonwebkey::JsonWebKey;
-use serde::{Deserialize, Serialize};
+Cargo.toml
 
-#[derive(Serialize, Deserialize)]
-pub struct Claims {
-    pub iss: String,
-    pub sub: String,
-    pub scp: Vec<String>,
-    pub cid: String,
-    pub uid: String,
-    pub exp: u64,
-    pub iat: u64,
-}
-
-let token = "token";
-let issuer = "https://your.domain/oauth2/default";
-
-let kid: String = token::key_id(&token)?;
-let keys: Keys = key::get(issuer).await?;
-let jwk: Option<&JWK> = keys.jwks.where_id(&kid);
-match jwk {
-    Some(key_jwk) => {
-        let key: JsonWebKey = serde_json::to_string(&key_jwk)?.parse()?;
-        let claims = token::decode::<Claims>(&token, key).await?;
-    }
-    None => {}
-}
-
+```toml
+[dependencies]
+okta-jwt-verifier = { version = "0.2.0", features = ["disk-cache"] }
 ```
 
-## Examples
+## Example - Tide Middleware
 
 - Tide Middleware (Basic):
 
