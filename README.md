@@ -10,7 +10,7 @@ Cargo.toml
 
 ```toml
 [dependencies]
-okta-jwt-verifier = "0.2.0"
+okta-jwt-verifier = "0.2.1"
 ```
 
 With [cargo add](https://github.com/killercup/cargo-edit#Installation) installed :
@@ -58,7 +58,7 @@ Cargo.toml
 
 ```toml
 [dependencies]
-okta-jwt-verifier = { version = "0.2.0", features = ["disk-cache"] }
+okta-jwt-verifier = { version = "0.2.1", features = ["disk-cache"] }
 ```
 
 ## Example - Tide Middleware
