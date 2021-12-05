@@ -6,10 +6,14 @@
 //! use okta_jwt_verifier::{verify, DefaultClaims};
 //! use serde::{Deserialize, Serialize};
 //!
-//! let token = "token";
-//! let issuer = "https://your.domain/oauth2/default";
+//! #[async_std::main]
+//! async fn main() -> anyhow::Result<()> {
+//!     let token = "token";
+//!     let issuer = "https://your.domain/oauth2/default";
 //!
-//!verify::<DefaultClaims>(&issuer, &token).await?;
+//!     verify::<DefaultClaims>(&issuer, &token).await?;
+//!     Ok(())
+//! }
 //!```
 #![forbid(unsafe_code, future_incompatible)]
 #![deny(
