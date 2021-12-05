@@ -1,16 +1,41 @@
-#![allow(dead_code)]
-pub mod error;
+//! A helper library for working with JWT's for Okta.
+//!
+//! ## Example
+//!
+//! ```no_run
+//! use okta_jwt_verifier::{verify, DefaultClaims};
+//! use serde::{Deserialize, Serialize};
+//!
+//! let token = "token";
+//! let issuer = "https://your.domain/oauth2/default";
+//!
+//!verify::<DefaultClaims>(&issuer, &token).await?;
+//!```
+#![forbid(unsafe_code, future_incompatible)]
+#![deny(
+    missing_docs,
+    missing_debug_implementations,
+    missing_copy_implementations,
+    nonstandard_style,
+    unused_qualifications,
+    rustdoc::missing_doc_code_examples
+)]
+/// Provides a method for retrieving keys from an upsteam auth endpoint
+/// as well as structs to ease serialization/deserialization.
 pub mod key;
+/// Provides a method to decode a given jwt
+/// and a struct describing the default claims.
 pub mod token;
 
+use anyhow::{bail, Result};
 use jsonwebtoken::TokenData;
 use serde::de::DeserializeOwned;
 
 pub use self::key::{JWK, JWKS};
 pub use self::token::DefaultClaims;
 
-pub type Result<T> = std::result::Result<T, error::Error>;
-
+/// Accepts an issuer and token, attempts key retrieval,
+/// then attempts to decode a token
 pub async fn verify<T>(issuer: &str, token: &str) -> Result<TokenData<T>>
 where
     T: DeserializeOwned,
@@ -23,7 +48,7 @@ where
             let key: jsonwebkey::JsonWebKey = serde_json::to_string(&key_jwk)?.parse()?;
             token::decode::<T>(token, key).await
         }
-        None => Err(error::Error::Custom("No matching key found!".into())),
+        None => bail!("No matching key found!"),
     }
 }
 

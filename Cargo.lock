@@ -58,9 +58,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.50"
+version = "1.0.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ecc78c299ae753905840c5d3ba036c51f61ce5a98a83f98d9c9d29dffd427f71"
+checksum = "8b26702f315f53b6071259e15dd9d64528213b44d61de1ec926eca7715d62203"
 
 [[package]]
 name = "arrayref"
@@ -500,16 +500,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "combine"
-version = "4.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2b2f5d0ee456f3928812dfc8c6d9a1d592b98678f6d56db9b0cd2b7bc6c8db5"
-dependencies = [
- "bytes 1.1.0",
- "memchr",
-]
-
-[[package]]
 name = "concurrent-queue"
 version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -681,12 +671,6 @@ name = "dotenv"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
-
-[[package]]
-name = "dtoa"
-version = "0.4.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56899898ce76aaf4a0f24d914c97ea6ed976d42fec6ad33fcbb0a1103e07b2b0"
 
 [[package]]
 name = "either"
@@ -924,9 +908,9 @@ dependencies = [
 
 [[package]]
 name = "gloo-timers"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "47204a46aaff920a1ea58b11d03dec6f704287d27561724a4631e450654a891f"
+checksum = "6f16c88aa13d2656ef20d1c042086b8767bbe2bdb62526894275a1b062161b2e"
 dependencies = [
  "futures-channel",
  "futures-core",
@@ -999,9 +983,9 @@ dependencies = [
 
 [[package]]
 name = "http-cache-semantics"
-version = "0.9.10"
+version = "0.9.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "282c92ad1dbdb3b307f895170be0720c9b737ea5f9aadef2e0c8aa994b40d2f6"
+checksum = "da48078da12f9e14ddace16d458acd2ad9fc7e9c183c874319da668ea85051ae"
 dependencies = [
  "chrono",
  "http",
@@ -1181,9 +1165,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.108"
+version = "0.2.109"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8521a1b57e76b1ec69af7599e75e38e7b7fad6610f037db8c79b127201b5d119"
+checksum = "f98a04dce437184842841303488f70d0188c5f51437d2a834dc097eafa909a01"
 
 [[package]]
 name = "libnghttp2-sys"
@@ -1317,7 +1301,7 @@ dependencies = [
 
 [[package]]
 name = "okta-jwt-verifier"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-std",
@@ -1325,12 +1309,10 @@ dependencies = [
  "dotenv",
  "jsonwebkey",
  "jsonwebtoken",
- "redis",
  "serde",
  "serde_json",
  "surf",
  "surf-middleware-cache",
- "thiserror",
  "tide",
  "tide-http-auth",
 ]
@@ -1477,9 +1459,9 @@ checksum = "dbf0c48bc1d91375ae5c3cd81e3722dff1abcf81a30960240640d223f59fe0e5"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.32"
+version = "1.0.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba508cc11742c0dc5c1659771673afbab7a0efab23aa17e854cbab0837ed0b43"
+checksum = "fb37d2df5df740e582f28f8560cf425f52bb267d872fe58358eadb554909f07a"
 dependencies = [
  "unicode-xid",
 ]
@@ -1572,21 +1554,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d51e9f596de227fda2ea6c84607f5558e196eeaf43c986b724ba4fb8fdf497e7"
 dependencies = [
  "rand_core 0.6.3",
-]
-
-[[package]]
-name = "redis"
-version = "0.21.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f23ceed4c0e76b322657c2c3352ea116f9ec60a1a1aefeb3c84ed062c50865b"
-dependencies = [
- "async-trait",
- "combine",
- "dtoa",
- "itoa",
- "percent-encoding",
- "sha1",
- "url",
 ]
 
 [[package]]
@@ -1993,9 +1960,9 @@ dependencies = [
 
 [[package]]
 name = "surf-middleware-cache"
-version = "0.2.0"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "98905f2dc76b960d4077fb5ab6501221cbeee2d7598abb885cea20f79715e528"
+checksum = "95450f776bf84deaf60fdfb7199312fca4d1abef777b0323aafd43a4ac2b49d6"
 dependencies = [
  "bincode",
  "cacache",
@@ -2004,7 +1971,6 @@ dependencies = [
  "http-types",
  "httpdate",
  "serde",
- "serde_json",
  "surf",
 ]
 

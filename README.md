@@ -10,7 +10,7 @@ Cargo.toml
 
 ```toml
 [dependencies]
-okta-jwt-verifier = "0.2.1"
+okta-jwt-verifier = "0.3.0"
 ```
 
 With [cargo add](https://github.com/killercup/cargo-edit#Installation) installed :
