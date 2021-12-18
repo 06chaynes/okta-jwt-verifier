@@ -28,7 +28,7 @@ attempts to decode the token, and finally attempts to deserialize the claims.
 This method will attempt to retrieve the keys upon each request.
 
 ```rust
-use okta_jwt_verifier::verify;
+use okta_jwt_verifier::Verifier;
 use serde::{Deserialize, Serialize};
 
 // You can provide your own Claims struct or use the provided defaults
@@ -50,9 +50,9 @@ let issuer = "https://your.domain/oauth2/default";
 // An optional leeway (in seconds) can be provided to account for clock skew (default: 120)
 // Optional audience claims can be provided to validate against
 Verifier::new(&issuer, None, None)
-            .await?
-            .verify::<DefaultClaims>(&token)
-            .await?;
+  .await?
+  .verify::<DefaultClaims>(&token)
+  .await?;
 ```
 
 ## Example - Caching
