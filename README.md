@@ -10,7 +10,7 @@ Cargo.toml
 
 ```toml
 [dependencies]
-okta-jwt-verifier = "0.3.0"
+okta-jwt-verifier = "0.4.0"
 ```
 
 With [cargo add](https://github.com/killercup/cargo-edit#Installation) installed :
@@ -47,7 +47,12 @@ pub struct Claims {
 let token = "token";
 let issuer = "https://your.domain/oauth2/default";
 
-verify::<Claims>(&issuer, &token).await?;
+// An optional leeway (in seconds) can be provided to account for clock skew (default: 120)
+// Optional audience claims can be provided to validate against
+Verifier::new(&issuer, None, None)
+            .await?
+            .verify::<DefaultClaims>(&token)
+            .await?;
 ```
 
 ## Example - Caching
@@ -58,7 +63,7 @@ Cargo.toml
 
 ```toml
 [dependencies]
-okta-jwt-verifier = { version = "0.3.0", features = ["disk-cache"] }
+okta-jwt-verifier = { version = "0.4.0", features = ["disk-cache"] }
 ```
 
 ## Example - Tide Middleware
