@@ -25,7 +25,7 @@ This example attempts to retrieve the keys from the provided Okta authorization 
 decodes the token header to identify the key id, attempts to find a matching key,
 attempts to decode the token, and finally attempts to deserialize the claims.
 
-This method will attempt to retrieve the keys upon each request.
+This method will attempt to retrieve the keys upon each request unless a cache feature is enabled.
 
 ```rust
 use okta_jwt_verifier::Verifier;
