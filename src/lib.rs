@@ -133,12 +133,7 @@ impl Verifier {
         aud: Option<HashSet<String>>,
     ) -> Result<Self> {
         let keys = get(issuer).await?;
-        Ok(Self {
-            issuer: issuer.to_string(),
-            leeway,
-            aud,
-            keys,
-        })
+        Ok(Self { issuer: issuer.to_string(), leeway, aud, keys })
     }
 
     /// verifies token
@@ -176,7 +171,11 @@ impl Verifier {
         }
     }
 
-    async fn decode<T>(&self, token: &str, key_jwk: &Jwk) -> Result<TokenData<T>>
+    async fn decode<T>(
+        &self,
+        token: &str,
+        key_jwk: &Jwk,
+    ) -> Result<TokenData<T>>
     where
         T: DeserializeOwned,
     {
@@ -190,7 +189,11 @@ impl Verifier {
         }
         validation.aud = self.aud.clone();
         validation.iss = Some(self.issuer.clone());
-        let claims = jsonwebtoken::decode::<T>(token, &key.key.to_decoding_key(), &validation)?;
+        let claims = jsonwebtoken::decode::<T>(
+            token,
+            &key.key.to_decoding_key(),
+            &validation,
+        )?;
         Ok(claims)
     }
 }
@@ -211,9 +214,7 @@ async fn get(issuer: &str) -> Result<Jwks> {
             bail!(e)
         }
     };
-    let mut keymap = Jwks {
-        inner: HashMap::new(),
-    };
+    let mut keymap = Jwks { inner: HashMap::new() };
     for key in keys {
         keymap.inner.insert(key.kid.clone(), key);
     }
