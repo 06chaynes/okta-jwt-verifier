@@ -47,12 +47,12 @@ pub struct DefaultClaims {
     /// The subject of the token.
     pub sub: String,
     /// Array of scopes that are granted to this access token.
-    pub scp: Vec<String>,
+    pub scp: Option<Vec<String>>,
     /// Client ID of the client that requested the access token.
-    pub cid: String,
+    pub cid: Option<String>,
     /// A unique identifier for the user.
     /// It isn't included in the access token if there is no user bound to it.
-    pub uid: String,
+    pub uid: Option<String>,
     /// The time the access token expires, represented in Unix time (seconds).
     pub exp: u64,
     /// The time the access token was issued, represented in Unix time (seconds).
@@ -198,12 +198,12 @@ impl Verifier {
         }
         validation.aud = self.aud.clone();
         validation.iss = Some(self.issuer.clone());
-        let claims = jsonwebtoken::decode::<T>(
+        let tdata = jsonwebtoken::decode::<T>(
             token,
             &key.key.to_decoding_key(),
             &validation,
         )?;
-        Ok(claims)
+        Ok(tdata)
     }
 }
 
