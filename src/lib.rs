@@ -103,6 +103,12 @@ struct KeyResponse {
     keys: Vec<Jwk>,
 }
 
+// Needed for the cid verification workaround
+#[derive(Debug, Serialize, Deserialize)]
+struct ClientId {
+    cid: String,
+}
+
 impl Jwks {
     // Attempts to retrieve a key by given id
     pub fn where_id(&self, kid: &str) -> Option<&Jwk> {
@@ -131,6 +137,7 @@ fn build_client() -> surf::Client {
 #[derive(Debug, Clone)]
 pub struct Verifier {
     issuer: String,
+    cid: Option<String>,
     leeway: Option<u64>,
     aud: Option<HashSet<String>>,
     keys: Jwks,
@@ -141,7 +148,13 @@ impl Verifier {
     /// to retrieve the keys from the specified issuer.
     pub async fn new(issuer: &str) -> Result<Self> {
         let keys = get(issuer).await?;
-        Ok(Self { issuer: issuer.to_string(), leeway: None, aud: None, keys })
+        Ok(Self {
+            issuer: issuer.to_string(),
+            cid: None,
+            leeway: None,
+            aud: None,
+            keys,
+        })
     }
 
     /// `verify` will attempt to validate a passed access
@@ -175,6 +188,29 @@ impl Verifier {
             Some(key_jwk) => self.decode::<T>(token, key_jwk).await,
             None => bail!("No matching key found!"),
         }
+    }
+
+    /// `client_id` can be used to require cid claim verification.
+    ///
+    /// ```no_run
+    /// use okta_jwt_verifier::{Verifier, DefaultClaims};
+    ///
+    /// #[async_std::main]
+    /// async fn main() -> anyhow::Result<()> {
+    ///     let token = "token";
+    ///     let issuer = "https://your.domain/oauth2/default";
+    ///
+    ///     Verifier::new(&issuer)
+    ///         .await?
+    ///         .client_id("Bl3hStrINgiD")
+    ///         .verify::<DefaultClaims>(&token)
+    ///         .await?;
+    ///     Ok(())
+    /// }
+    ///```
+    pub fn client_id(mut self, cid: &str) -> Self {
+        self.cid = Some(cid.to_string());
+        self
     }
 
     /// `audience` is for setting multiple aud values
@@ -280,6 +316,17 @@ impl Verifier {
     {
         let key: JsonWebKey = serde_json::to_string(key_jwk)?.parse()?;
         let mut validation = Validation::new(jsonwebtoken::Algorithm::RS256);
+        if let Some(cid) = &self.cid {
+            // This isn't ideal but what we have to do for now
+            let cid_tdata = jsonwebtoken::decode::<ClientId>(
+                token,
+                &key.key.to_decoding_key(),
+                &validation,
+            )?;
+            if &cid_tdata.claims.cid != cid {
+                bail!("client_id validation failed!")
+            }
+        }
         if let Some(secs) = self.leeway {
             validation.leeway = secs;
         } else {
