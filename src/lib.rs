@@ -10,11 +10,10 @@
 //! async fn main() -> anyhow::Result<()> {
 //!     let token = "token";
 //!     let issuer = "https://your.domain/oauth2/default";
-//!     let mut aud = HashSet::new();
-//!     aud.insert("api://default".to_string());
 //!
-//!     Verifier::new(&issuer, None, Some(aud))
+//!     Verifier::new(&issuer, None, None)
 //!         .await?
+//!         .add_audience("api://default".to_string())
 //!         .verify::<DefaultClaims>(&token)
 //!         .await?;
 //!     Ok(())
@@ -153,6 +152,18 @@ impl Verifier {
             Some(key_jwk) => self.decode::<T>(token, key_jwk).await,
             None => bail!("No matching key found!"),
         }
+    }
+
+    /// helper to insert a single audience
+    pub fn add_audience(mut self, audience: String) -> Self {
+        if let Some(mut a) = self.aud.clone() {
+            a.insert(audience);
+        } else {
+            let mut a = HashSet::new();
+            a.insert(audience);
+            self.aud = Some(a);
+        }
+        self
     }
 
     // Attempts to retrieve a key id for a given token
