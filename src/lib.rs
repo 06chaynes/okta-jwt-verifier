@@ -42,7 +42,8 @@ use surf_middleware_cache::{managers::CACacheManager, Cache, CacheMode};
 /// Describes the default claims inside a decoded token
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DefaultClaims {
-    /// The Issuer Identifier of the response. This value is the unique identifier for the Authorization Server instance.
+    /// The Issuer Identifier of the response. 
+    /// This value is the unique identifier for the Authorization Server instance.
     pub iss: String,
     /// The subject of the token.
     pub sub: String,
@@ -50,7 +51,8 @@ pub struct DefaultClaims {
     pub scp: Vec<String>,
     /// Client ID of the client that requested the access token.
     pub cid: String,
-    /// A unique identifier for the user. It isn't included in the access token if there is no user bound to it.
+    /// A unique identifier for the user. 
+    /// It isn't included in the access token if there is no user bound to it.
     pub uid: String,
     /// The time the access token expires, represented in Unix time (seconds).
     pub exp: u64,
