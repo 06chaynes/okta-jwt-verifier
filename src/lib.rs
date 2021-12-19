@@ -2,8 +2,9 @@
 //!
 //! The purpose of this library is to help with the
 //! verification of access and ID tokens issued by Okta.
-//!
-//! ## Examples
+//! See [`Verifier`] for more examples, and a
+//! [tide](https://github.com/http-rs/tide) middleware
+//! implementation in the repository under the examples directory.
 //!
 //! ### Minimal example
 //!
@@ -17,67 +18,6 @@
 //!
 //!     Verifier::new(&issuer)
 //!         .await?
-//!         .verify::<DefaultClaims>(&token)
-//!         .await?;
-//!     Ok(())
-//! }
-//!```
-//!
-//! ### Verify audience (helper for single entry)
-//!
-//! ```no_run
-//! use okta_jwt_verifier::{Verifier, DefaultClaims};
-//!
-//! #[async_std::main]
-//! async fn main() -> anyhow::Result<()> {
-//!     let token = "token";
-//!     let issuer = "https://your.domain/oauth2/default";
-//!
-//!     Verifier::new(&issuer)
-//!         .await?
-//!         .add_audience("api://default")
-//!         .verify::<DefaultClaims>(&token)
-//!         .await?;
-//!     Ok(())
-//! }
-//!```
-//!
-//! ### Verify audience (method for multiple entries)
-//!
-//! ```no_run
-//! use okta_jwt_verifier::{Verifier, DefaultClaims};
-//! use std::collections::HashSet;
-//!
-//! #[async_std::main]
-//! async fn main() -> anyhow::Result<()> {
-//!     let token = "token";
-//!     let issuer = "https://your.domain/oauth2/default";
-//!     let mut aud = HashSet::new();
-//!     aud.insert("api://default".to_string());
-//!     aud.insert("api://admin".to_string());
-//!
-//!     Verifier::new(&issuer)
-//!         .await?
-//!         .audience(aud)
-//!         .verify::<DefaultClaims>(&token)
-//!         .await?;
-//!     Ok(())
-//! }
-//!```
-//!
-//! ### Custom leeway (default is 120 seconds)
-//!
-//! ```no_run
-//! use okta_jwt_verifier::{Verifier, DefaultClaims};
-//!
-//! #[async_std::main]
-//! async fn main() -> anyhow::Result<()> {
-//!     let token = "token";
-//!     let issuer = "https://your.domain/oauth2/default";
-//!
-//!     Verifier::new(&issuer)
-//!         .await?
-//!         .leeway(60)
 //!         .verify::<DefaultClaims>(&token)
 //!         .await?;
 //!     Ok(())
@@ -157,6 +97,7 @@ struct Jwks {
     inner: HashMap<String, Jwk>,
 }
 
+// Describes issuer keys response
 #[derive(Debug, Deserialize)]
 struct KeyResponse {
     keys: Vec<Jwk>,
@@ -169,6 +110,7 @@ impl Jwks {
     }
 }
 
+// Builds a surf client configured to use a disk cache
 #[cfg(feature = "disk-cache")]
 fn build_client() -> surf::Client {
     surf::Client::new().with(Cache {
@@ -177,12 +119,15 @@ fn build_client() -> surf::Client {
     })
 }
 
+// Builds a default surf client
 #[cfg(not(feature = "disk-cache"))]
 fn build_client() -> surf::Client {
     surf::Client::new()
 }
 
-/// main struct
+/// Attempts to retrieve the keys from an Okta issuer,
+/// decode and verify a given access/ID token, and
+/// deserialize the requested claims.
 #[derive(Debug, Clone)]
 pub struct Verifier {
     issuer: String,
@@ -192,13 +137,34 @@ pub struct Verifier {
 }
 
 impl Verifier {
-    /// builds main struct
+    /// `new` constructs an instance of Verifier and attempts
+    /// to retrieve the keys from the specified issuer.
     pub async fn new(issuer: &str) -> Result<Self> {
         let keys = get(issuer).await?;
         Ok(Self { issuer: issuer.to_string(), leeway: None, aud: None, keys })
     }
 
-    /// verifies token
+    /// `verify` will attempt to validate a passed access
+    /// or ID token. Upon a successful validation it will then
+    /// attempt to deserialize the requested claims. A [`DefaultClaims`]
+    /// struct has been provided for use or to serve as an example
+    /// for constructing a custom claim struct.
+    ///
+    /// ```no_run
+    /// use okta_jwt_verifier::{Verifier, DefaultClaims};
+    ///
+    /// #[async_std::main]
+    /// async fn main() -> anyhow::Result<()> {
+    ///     let token = "token";
+    ///     let issuer = "https://your.domain/oauth2/default";
+    ///
+    ///     Verifier::new(&issuer)
+    ///         .await?
+    ///         .verify::<DefaultClaims>(&token)
+    ///         .await?;
+    ///     Ok(())
+    /// }
+    ///```
     pub async fn verify<T>(&self, token: &str) -> Result<TokenData<T>>
     where
         T: DeserializeOwned,
@@ -211,19 +177,53 @@ impl Verifier {
         }
     }
 
-    /// set aud directly
+    /// `audience` is for setting multiple aud values
+    /// to check against.
+    ///
+    /// ```no_run
+    /// use okta_jwt_verifier::{Verifier, DefaultClaims};
+    /// use std::collections::HashSet;
+    ///
+    /// #[async_std::main]
+    /// async fn main() -> anyhow::Result<()> {
+    ///     let token = "token";
+    ///     let issuer = "https://your.domain/oauth2/default";
+    ///     let mut aud = HashSet::new();
+    ///     aud.insert("api://default".to_string());
+    ///     aud.insert("api://admin".to_string());
+    ///
+    ///     Verifier::new(&issuer)
+    ///         .await?
+    ///         .audience(aud)
+    ///         .verify::<DefaultClaims>(&token)
+    ///         .await?;
+    ///     Ok(())
+    /// }
+    ///```
     pub fn audience(mut self, audience: HashSet<String>) -> Self {
         self.aud = Some(audience);
         self
     }
 
-    /// override leeway (seconds)
-    pub fn leeway(mut self, leeway: u64) -> Self {
-        self.leeway = Some(leeway);
-        self
-    }
-
-    /// helper to insert a single audience
+    /// `add_audience` helps to make adding a single
+    /// aud entry easier.
+    ///
+    /// ```no_run
+    /// use okta_jwt_verifier::{Verifier, DefaultClaims};
+    ///
+    /// #[async_std::main]
+    /// async fn main() -> anyhow::Result<()> {
+    ///     let token = "token";
+    ///     let issuer = "https://your.domain/oauth2/default";
+    ///
+    ///     Verifier::new(&issuer)
+    ///         .await?
+    ///         .add_audience("api://default")
+    ///         .verify::<DefaultClaims>(&token)
+    ///         .await?;
+    ///     Ok(())
+    /// }
+    ///```
     pub fn add_audience(mut self, audience: &str) -> Self {
         if let Some(mut a) = self.aud.clone() {
             a.insert(audience.to_string());
@@ -232,6 +232,30 @@ impl Verifier {
             a.insert(audience.to_string());
             self.aud = Some(a);
         }
+        self
+    }
+
+    /// `leeway` is for overriding the default leeway
+    /// of 120 seconds, this is to help deal with clock skew.
+    ///
+    /// ```no_run
+    /// use okta_jwt_verifier::{Verifier, DefaultClaims};
+    ///
+    /// #[async_std::main]
+    /// async fn main() -> anyhow::Result<()> {
+    ///     let token = "token";
+    ///     let issuer = "https://your.domain/oauth2/default";
+    ///
+    ///     Verifier::new(&issuer)
+    ///         .await?
+    ///         .leeway(60)
+    ///         .verify::<DefaultClaims>(&token)
+    ///         .await?;
+    ///     Ok(())
+    /// }
+    ///```
+    pub fn leeway(mut self, leeway: u64) -> Self {
+        self.leeway = Some(leeway);
         self
     }
 
@@ -245,6 +269,7 @@ impl Verifier {
         }
     }
 
+    // Attempts to decode the passed token and deserialize the claims
     async fn decode<T>(
         &self,
         token: &str,
@@ -272,6 +297,7 @@ impl Verifier {
     }
 }
 
+// Attempts to retrieve the keys from the issuer
 async fn get(issuer: &str) -> Result<Jwks> {
     let url = format!("{}/v1/keys", &issuer);
     let req = surf::get(&url);
