@@ -38,9 +38,9 @@ use std::collections::HashSet;
 pub struct Claims {
     pub iss: String,
     pub sub: String,
-    pub scp: Vec<String>,
-    pub cid: String,
-    pub uid: String,
+    pub scp: Option<Vec<String>>,
+    pub cid: Option<String>,
+    pub uid: Option<String>,
     pub exp: u64,
     pub iat: u64,
 }
