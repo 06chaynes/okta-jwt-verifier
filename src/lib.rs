@@ -1,6 +1,29 @@
 //! A helper library for working with JWT's for Okta.
 //!
-//! ## Example
+//! The purpose of this library is to help with the
+//! verification of access and ID tokens issued by Okta.
+//!
+//! ## Examples
+//!
+//! ### Minimal example
+//!
+//! ```no_run
+//! use okta_jwt_verifier::{Verifier, DefaultClaims};
+//!
+//! #[async_std::main]
+//! async fn main() -> anyhow::Result<()> {
+//!     let token = "token";
+//!     let issuer = "https://your.domain/oauth2/default";
+//!
+//!     Verifier::new(&issuer)
+//!         .await?
+//!         .verify::<DefaultClaims>(&token)
+//!         .await?;
+//!     Ok(())
+//! }
+//!```
+//!
+//! ### Verify audience (helper for single entry)
 //!
 //! ```no_run
 //! use okta_jwt_verifier::{Verifier, DefaultClaims};
@@ -13,6 +36,48 @@
 //!     Verifier::new(&issuer)
 //!         .await?
 //!         .add_audience("api://default")
+//!         .verify::<DefaultClaims>(&token)
+//!         .await?;
+//!     Ok(())
+//! }
+//!```
+//!
+//! ### Verify audience (method for multiple entries)
+//!
+//! ```no_run
+//! use okta_jwt_verifier::{Verifier, DefaultClaims};
+//! use std::collections::HashSet;
+//!
+//! #[async_std::main]
+//! async fn main() -> anyhow::Result<()> {
+//!     let token = "token";
+//!     let issuer = "https://your.domain/oauth2/default";
+//!     let mut aud = HashSet::new();
+//!     aud.insert("api://default".to_string());
+//!     aud.insert("api://admin".to_string());
+//!
+//!     Verifier::new(&issuer)
+//!         .await?
+//!         .audience(aud)
+//!         .verify::<DefaultClaims>(&token)
+//!         .await?;
+//!     Ok(())
+//! }
+//!```
+//!
+//! ### Custom leeway (default is 120 seconds)
+//!
+//! ```no_run
+//! use okta_jwt_verifier::{Verifier, DefaultClaims};
+//!
+//! #[async_std::main]
+//! async fn main() -> anyhow::Result<()> {
+//!     let token = "token";
+//!     let issuer = "https://your.domain/oauth2/default";
+//!
+//!     Verifier::new(&issuer)
+//!         .await?
+//!         .leeway(60)
 //!         .verify::<DefaultClaims>(&token)
 //!         .await?;
 //!     Ok(())
