@@ -4,7 +4,6 @@
 //!
 //! ```no_run
 //! use okta_jwt_verifier::{Verifier, DefaultClaims};
-//! use std::collections::HashSet;
 //!
 //! #[async_std::main]
 //! async fn main() -> anyhow::Result<()> {
