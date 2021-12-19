@@ -13,7 +13,7 @@
 //!
 //!     Verifier::new(&issuer)
 //!         .await?
-//!         .add_audience("api://default".to_string())
+//!         .add_audience("api://default")
 //!         .verify::<DefaultClaims>(&token)
 //!         .await?;
 //!     Ok(())
@@ -160,12 +160,12 @@ impl Verifier {
     }
 
     /// helper to insert a single audience
-    pub fn add_audience(mut self, audience: String) -> Self {
+    pub fn add_audience(mut self, audience: &str) -> Self {
         if let Some(mut a) = self.aud.clone() {
-            a.insert(audience);
+            a.insert(audience.to_string());
         } else {
             let mut a = HashSet::new();
-            a.insert(audience);
+            a.insert(audience.to_string());
             self.aud = Some(a);
         }
         self

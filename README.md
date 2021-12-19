@@ -30,6 +30,7 @@ This method will attempt to retrieve the keys upon each request.
 ```rust
 use okta_jwt_verifier::Verifier;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 
 // You can provide your own Claims struct or use the provided defaults
 // This example matches okta_jwt_verifier::DefaultClaims
@@ -46,11 +47,20 @@ pub struct Claims {
 
 let token = "token";
 let issuer = "https://your.domain/oauth2/default";
+let mut aud = HashSet::new();
+aud.insert("api://default");
+aud.insert("api://test");
 
 // An optional leeway (in seconds) can be provided to account for clock skew (default: 120)
 // Optional audience claims can be provided to validate against
-Verifier::new(&issuer, None, None)
+Verifier::new(&issuer)
   .await?
+  // overriding leeway to be 0 seconds
+  .leeway(0)
+  // setting aud with a provided HashSet
+  .audience(aud)
+  // adding a single aud entry without building a HashSet manually
+  .add_audience("api://dev")
   .verify::<DefaultClaims>(&token)
   .await?;
 ```
