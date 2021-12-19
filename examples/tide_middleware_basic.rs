@@ -19,7 +19,7 @@ impl Storage<Authenticated, BearerAuthRequest> for State {
     ) -> tide::Result<Option<Authenticated>> {
         let issuer = env::var("ISSUER")
             .expect("You need to provide the ISSUER env variable!");
-        let _tokendata = Verifier::new(&issuer, None, None)
+        let _tokendata = Verifier::new(&issuer)
             .await?
             .verify::<DefaultClaims>(&req.token)
             .await?;

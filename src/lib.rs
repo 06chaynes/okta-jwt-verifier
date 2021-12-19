@@ -11,7 +11,7 @@
 //!     let token = "token";
 //!     let issuer = "https://your.domain/oauth2/default";
 //!
-//!     Verifier::new(&issuer, None, None)
+//!     Verifier::new(&issuer)
 //!         .await?
 //!         .add_audience("api://default".to_string())
 //!         .verify::<DefaultClaims>(&token)
@@ -42,7 +42,7 @@ use surf_middleware_cache::{managers::CACacheManager, Cache, CacheMode};
 /// Describes the default claims inside a decoded token
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DefaultClaims {
-    /// The Issuer Identifier of the response. 
+    /// The Issuer Identifier of the response.
     /// This value is the unique identifier for the Authorization Server instance.
     pub iss: String,
     /// The subject of the token.
@@ -51,7 +51,7 @@ pub struct DefaultClaims {
     pub scp: Vec<String>,
     /// Client ID of the client that requested the access token.
     pub cid: String,
-    /// A unique identifier for the user. 
+    /// A unique identifier for the user.
     /// It isn't included in the access token if there is no user bound to it.
     pub uid: String,
     /// The time the access token expires, represented in Unix time (seconds).
@@ -129,13 +129,9 @@ pub struct Verifier {
 
 impl Verifier {
     /// builds main struct
-    pub async fn new(
-        issuer: &str,
-        leeway: Option<u64>,
-        aud: Option<HashSet<String>>,
-    ) -> Result<Self> {
+    pub async fn new(issuer: &str) -> Result<Self> {
         let keys = get(issuer).await?;
-        Ok(Self { issuer: issuer.to_string(), leeway, aud, keys })
+        Ok(Self { issuer: issuer.to_string(), leeway: None, aud: None, keys })
     }
 
     /// verifies token
@@ -149,6 +145,18 @@ impl Verifier {
             Some(key_jwk) => self.decode::<T>(token, key_jwk).await,
             None => bail!("No matching key found!"),
         }
+    }
+
+    /// set aud directly
+    pub fn audience(mut self, audience: HashSet<String>) -> Self {
+        self.aud = Some(audience);
+        self
+    }
+
+    /// override leeway (seconds)
+    pub fn leeway(mut self, leeway: u64) -> Self {
+        self.leeway = Some(leeway);
+        self
     }
 
     /// helper to insert a single audience
@@ -232,10 +240,7 @@ mod tests {
         dotenv::dotenv().ok();
         let issuer = dotenv::var("ISSUER")?;
         let token = dotenv::var("TEST_TOKEN")?;
-        Verifier::new(&issuer, None, None)
-            .await?
-            .verify::<DefaultClaims>(&token)
-            .await?;
+        Verifier::new(&issuer).await?.verify::<DefaultClaims>(&token).await?;
         Ok(())
     }
 }
