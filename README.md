@@ -2,16 +2,11 @@
 
 ![crates.io](https://img.shields.io/crates/v/okta-jwt-verifier.svg)
 
-A helper library for working with JWT's for Okta in Rust
+The purpose of this library is to help with the
+verification of access and ID tokens issued by Okta.
+Check the [API Docs](https://docs.rs/okta-jwt-verifier) for more details.
 
 ## Install
-
-Cargo.toml
-
-```toml
-[dependencies]
-okta-jwt-verifier = "0.4.0"
-```
 
 With [cargo add](https://github.com/killercup/cargo-edit#Installation) installed :
 
@@ -19,13 +14,35 @@ With [cargo add](https://github.com/killercup/cargo-edit#Installation) installed
 cargo add okta-jwt-verifier
 ```
 
-## Example - Basic Usage
+## Examples
+
+### Minimal
 
 This example attempts to retrieve the keys from the provided Okta authorization server,
 decodes the token header to identify the key id, attempts to find a matching key,
 attempts to decode the token, and finally attempts to deserialize the claims.
 
 This method will attempt to retrieve the keys upon each request unless a cache feature is enabled.
+
+```rust
+use okta_jwt_verifier::{Verifier, DefaultClaims};
+
+#[async_std::main]
+async fn main() -> anyhow::Result<()> {
+    let token = "token";
+    let issuer = "https://your.domain/oauth2/default";
+
+    Verifier::new(&issuer)
+        .await?
+        .verify::<DefaultClaims>(&token)
+        .await?;
+    Ok(())
+}
+```
+
+### Optional Configuration
+
+This example shows the use of optional configurations for validation.
 
 ```rust
 use okta_jwt_verifier::Verifier;
@@ -51,40 +68,40 @@ let mut aud = HashSet::new();
 aud.insert("api://default");
 aud.insert("api://test");
 
-// An optional leeway (in seconds) can be provided to account for clock skew (default: 120)
-// Optional audience claims can be provided to validate against
 Verifier::new(&issuer)
   .await?
-  // overriding leeway to be 0 seconds
+  // An optional leeway (in seconds) can be provided to account for clock skew (default: 120)
+  // Overriding leeway to be 0 seconds
   .leeway(0)
-  // setting aud with a provided HashSet
+  // Optional audience claims can be provided to validate against
+  // Setting aud with a provided HashSet
   .audience(aud)
-  // adding a single aud entry without building a HashSet manually
+  // Adding a single aud entry without building a HashSet manually
   .add_audience("api://dev")
+  // An optional client ID can be provided to match against the cid claim
+  // Require cid verification
+  .client_id("Bl3hStrINgiD")
   .verify::<DefaultClaims>(&token)
   .await?;
 ```
 
-## Example - Caching
+### Key Caching
 
 This example matches the basic example but would cache the keys on disk. Requires the `disk-cache` feature to be enabled (disabled by default). Creates a `surf-cacache` directory relative to the working directory where the cache files will reside.
 
-Cargo.toml
+With [cargo add](https://github.com/killercup/cargo-edit#Installation) installed :
 
-```toml
-[dependencies]
-okta-jwt-verifier = { version = "0.4.0", features = ["disk-cache"] }
+```sh
+cargo add okta-jwt-verifier --features disk-cache
 ```
 
-## Example - Tide Middleware
+### Tide Middleware
 
-- Tide Middleware (Basic):
+This example implements the basic usage example as tide middleware.
 
-  This example implements the basic usage example as tide middleware.
-
-    ```sh
-    ISSUER="https://your.domain/oauth2/default" cargo run --example tide_middleware_basic
-    ```
+  ```sh
+  ISSUER="https://your.domain/oauth2/default" cargo run --example tide_middleware_basic
+  ```
 
 ## Features
 
