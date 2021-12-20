@@ -1,6 +1,7 @@
 # okta-jwt-verifier
 
 ![crates.io](https://img.shields.io/crates/v/okta-jwt-verifier.svg)
+[![Docs.rs](https://docs.rs/okta-jwt-verifier/badge.svg)](https://docs.rs/okta-jwt-verifier)
 
 The purpose of this library is to help with the
 verification of access and ID tokens issued by Okta.
