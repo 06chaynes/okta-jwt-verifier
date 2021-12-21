@@ -372,12 +372,72 @@ async fn get(issuer: &str) -> Result<Jwks> {
 mod tests {
     use super::*;
 
+    use jwt_simple::prelude::*;
+    use mockito::mock;
+    #[derive(Debug, serde::Serialize)]
+    struct Res {
+        keys: Vec<Jwk>,
+    }
+
+    // Pulled test data from https://github.com/jedisct1/rust-jwt-simple/blob/master/src/lib.rs
+
+    const RSA_KP_PEM: &str = r"
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEAyqq0N5u8Jvl+BLH2VMP/NAv/zY9T8mSq0V2Gk5Ql5H1a+4qi
+3viorUXG3AvIEEccpLsW85ps5+I9itp74jllRjA5HG5smbb+Oym0m2Hovfj6qP/1
+m1drQg8oth6tNmupNqVzlGGWZLsSCBLuMa3pFaPhoxl9lGU3XJIQ1/evMkOb98I3
+hHb4ELn3WGtNlAVkbP20R8sSii/zFjPqrG/NbSPLyAl1ctbG2d8RllQF1uRIqYQj
+85yx73hqQCMpYWU3d9QzpkLf/C35/79qNnSKa3t0cyDKinOY7JGIwh8DWAa4pfEz
+gg56yLcilYSSohXeaQV0nR8+rm9J8GUYXjPK7wIDAQABAoIBAQCpeRPYyHcPFGTH
+4lU9zuQSjtIq/+bP9FRPXWkS8bi6GAVEAUtvLvpGYuoGyidTTVPrgLORo5ncUnjq
+KwebRimlBuBLIR/Zboery5VGthoc+h4JwniMnQ6JIAoIOSDZODA5DSPYeb58n15V
+uBbNHkOiH/eoHsG/nOAtnctN/cXYPenkCfeLXa3se9EzkcmpNGhqCBL/awtLU17P
+Iw7XxsJsRMBOst4Aqiri1GQI8wqjtXWLyfjMpPR8Sqb4UpTDmU1wHhE/w/+2lahC
+Tu0/+sCWj7TlafYkT28+4pAMyMqUT6MjqdmGw8lD7/vXv8TF15NU1cUv3QSKpVGe
+50vlB1QpAoGBAO1BU1evrNvA91q1bliFjxrH3MzkTQAJRMn9PBX29XwxVG7/HlhX
+0tZRSR92ZimT2bAu7tH0Tcl3Bc3NwEQrmqKlIMqiW+1AVYtNjuipIuB7INb/TUM3
+smEh+fn3yhMoVxbbh/klR1FapPUFXlpNv3DJHYM+STqLMhl9tEc/I7bLAoGBANqt
+zR6Kovf2rh7VK/Qyb2w0rLJE7Zh/WI+r9ubCba46sorqkJclE5cocxWuTy8HWyQp
+spxzLP1FQlsI+MESgRLueoH3HtB9lu/pv6/8JlNjU6SzovfUZ0KztVUyUeB4vAcH
+pGcf2CkUtoYc8YL22Ybck3s8ThIdnY5zphCF55PtAoGAf46Go3c05XVKx78R05AD
+D2/y+0mnSGSzUjHPMzPyadIPxhltlCurlERhnwPGC4aNHFcvWTwS8kUGns6HF1+m
+JNnI1okSCW10UI/jTJ1avfwU/OKIBKKWSfi9cDJTt5cRs51V7pKnVEr6sy0uvDhe
+u+G091HuhwY9ak0WNtPwfJ8CgYEAuRdoyZQQso7x/Bj0tiHGW7EOB2n+LRiErj6g
+odspmNIH8zrtHXF9bnEHT++VCDpSs34ztuZpywnHS2SBoHH4HD0MJlszksbqbbDM
+1bk3+1bUIlEF/Hyk1jljn3QTB0tJ4y1dwweaH9NvVn7DENW9cr/aePGnJwA4Lq3G
+fq/IPlUCgYAuqgJQ4ztOq0EaB75xgqtErBM57A/+lMWS9eD/euzCEO5UzWVaiIJ+
+nNDmx/jvSrxA1Ih8TEHjzv4ezLFYpaJrTst4Mjhtx+csXRJU9a2W6HMXJ4Kdn8rk
+PBziuVURslNyLdlFsFlm/kfvX+4Cxrbb+pAGETtRTgmAoCDbvuDGRQ==
+-----END RSA PRIVATE KEY-----
+    ";
+
+    const KEY_ID: &str = "12345";
+
+    const RSA_MOD: &str = r"yqq0N5u8Jvl-BLH2VMP_NAv_zY9T8mSq0V2Gk5Ql5H1a-4qi3viorUXG3AvIEEccpLsW85ps5-I9itp74jllRjA5HG5smbb-Oym0m2Hovfj6qP_1m1drQg8oth6tNmupNqVzlGGWZLsSCBLuMa3pFaPhoxl9lGU3XJIQ1_evMkOb98I3hHb4ELn3WGtNlAVkbP20R8sSii_zFjPqrG_NbSPLyAl1ctbG2d8RllQF1uRIqYQj85yx73hqQCMpYWU3d9QzpkLf_C35_79qNnSKa3t0cyDKinOY7JGIwh8DWAa4pfEzgg56yLcilYSSohXeaQV0nR8-rm9J8GUYXjPK7w";
+
     #[async_std::test]
     async fn can_verify_token() -> Result<()> {
-        dotenv::dotenv().ok();
-        let issuer = dotenv::var("ISSUER")?;
-        let token = dotenv::var("TEST_TOKEN")?;
-        Verifier::new(&issuer).await?.verify::<DefaultClaims>(&token).await?;
+        let key_pair = RS256KeyPair::from_pem(RSA_KP_PEM)?.with_key_id(KEY_ID);
+        let jsonwk = Jwk {
+            kty: "RSA".to_string(),
+            alg: "RS256".to_string(),
+            kid: KEY_ID.to_string(),
+            uses: "sig".to_string(),
+            e: "AQAB".to_string(),
+            n: RSA_MOD.to_string(),
+        };
+        let claims = Claims::create(Duration::from_hours(2))
+            .with_issuer(&mockito::server_url())
+            .with_subject("test");
+        let token = key_pair.sign(claims)?;
+        let res = Res { keys: vec![jsonwk] };
+        let m = mock("GET", "/v1/keys")
+            .with_status(200)
+            .with_body(serde_json::to_string(&res)?)
+            .create();
+        let verifier = Verifier::new(&mockito::server_url()).await?;
+        m.assert();
+        verifier.verify::<DefaultClaims>(&token).await?;
         Ok(())
     }
 }

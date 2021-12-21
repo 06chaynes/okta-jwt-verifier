@@ -24,7 +24,8 @@ surf-middleware-cache = { version = "0.2", optional = true }
 [dev-dependencies]
 async-trait = "0.1"
 async-std = { version = "1.10", features = ["attributes"]}
-dotenv = "0.15"
+jwt-simple = "0.10"
+mockito = "0.30"
 tide = "0.16"
 tide-http-auth = "0.5"
 

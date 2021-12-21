@@ -112,31 +112,6 @@ The following features are available. By default no features are enabled.
 
 - [API Docs](https://docs.rs/okta-jwt-verifier)
 
-## Development
-
-### Testing
-
-- Note that this requires an internet connection
-
-First copy the example config to a new file:
-
-```sh
-cp .env_example .env
-```
-
-Update the ISSUER variable to reflect your environment (authorization host).
-Also set TEST_TOKEN to a JWT to test against, then run the tests:
-
-```sh
-cargo test
-```
-
-Or test with the optional disk cache:
-
-```sh
-cargo test --features disk-cache
-```
-
 ## License
 
 Licensed under either of
