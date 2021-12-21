@@ -1,5 +1,6 @@
 # okta-jwt-verifier
 
+[![Rust](https://github.com/06chaynes/okta-jwt-verifier/actions/workflows/rust.yml/badge.svg)](https://github.com/06chaynes/okta-jwt-verifier/actions/workflows/rust.yml)
 ![crates.io](https://img.shields.io/crates/v/okta-jwt-verifier.svg)
 [![Docs.rs](https://docs.rs/okta-jwt-verifier/badge.svg)](https://docs.rs/okta-jwt-verifier)
 
