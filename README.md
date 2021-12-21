@@ -69,21 +69,19 @@ let mut aud = HashSet::new();
 aud.insert("api://default");
 aud.insert("api://test");
 
-Verifier::new(&issuer)
-  .await?
-  // An optional leeway (in seconds) can be provided to account for clock skew (default: 120)
-  // Overriding leeway to be 0 seconds
-  .leeway(0)
-  // Optional audience claims can be provided to validate against
-  // Setting aud with a provided HashSet
-  .audience(aud)
-  // Adding a single aud entry without building a HashSet manually
-  .add_audience("api://dev")
-  // An optional client ID can be provided to match against the cid claim
-  // Require cid verification
-  .client_id("Bl3hStrINgiD")
-  .verify::<DefaultClaims>(&token)
-  .await?;
+let claims = Verifier::new(&issuer)
+    .await?
+    // An optional leeway (in seconds) can be provided to account for clock skew (default: 120)
+    .leeway(0)
+    // Optional audience claims can be provided to validate against
+    .audience(aud)
+    // Adding a single aud entry without building a HashSet manually
+    .add_audience("api://dev")
+    // An optional client ID can be provided to match against the cid claim
+    .client_id("Bl3hStrINgiD")
+    .verify::<Claims>(&token)
+    .await?;
+dbg!(&claims)
 ```
 
 ### Key Caching
