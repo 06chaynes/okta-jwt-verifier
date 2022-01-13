@@ -87,7 +87,7 @@ dbg!(&claims)
 
 ### Key Caching
 
-This example matches the basic example but would cache the keys on disk. Requires the `disk-cache` feature to be enabled (disabled by default). Creates a `surf-cacache` directory relative to the working directory where the cache files will reside.
+This example matches the basic example but would cache the keys on disk. Requires the `disk-cache` feature to be enabled (disabled by default). Creates an `http-cacache` directory relative to the working directory where the cache files will reside.
 
 With [cargo add](https://github.com/killercup/cargo-edit#Installation) installed :
 
