@@ -41,7 +41,7 @@ use jsonwebtoken::{TokenData, Validation};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 #[cfg(feature = "disk-cache")]
-use surf_middleware_cache::{managers::CACacheManager, Cache, CacheMode};
+use http_cache::{CACacheManager, Cache, CacheMode};
 
 /// Describes the default claims inside a decoded token
 #[derive(Debug, Serialize, Deserialize)]

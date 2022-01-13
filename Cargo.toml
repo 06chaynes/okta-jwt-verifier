@@ -1,7 +1,7 @@
 [package]
 name = "okta-jwt-verifier"
 description = "A helper library for working with JWT's for Okta in Rust"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["Christian Haynes <06chaynes@gmail.com>"]
 repository = "https://github.com/06chaynes/okta-jwt-verifier.git"
 readme = "README.md"
@@ -19,7 +19,7 @@ jsonwebtoken = "7.2"
 serde = { version = "1.0", features = ["derive"]}
 serde_json = "1.0"
 surf = "2.3"
-surf-middleware-cache = { version = "0.2", optional = true }
+http-cache = { version = "0.1", optional = true, features = ["client-surf"] }
 
 [dev-dependencies]
 async-trait = "0.1"
@@ -31,4 +31,4 @@ tide-http-auth = "0.5"
 
 [features]
 default = []
-disk-cache = ["surf-middleware-cache"]
+disk-cache = ["http-cache"]

@@ -1,3 +1,4 @@
 /target
-/surf-cacache
+Cargo.lock
+/http-cacache
 /.idea
