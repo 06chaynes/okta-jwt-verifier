@@ -41,7 +41,7 @@ use jsonwebtoken::{TokenData, Validation};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 #[cfg(feature = "disk-cache")]
-use http_cache::{CACacheManager, Cache, CacheMode};
+use http_cache_surf::{CACacheManager, Cache, CacheMode, HttpCache};
 
 /// Describes the default claims inside a decoded token
 #[derive(Debug, Serialize, Deserialize)]
@@ -119,10 +119,11 @@ impl Jwks {
 // Builds a surf client configured to use a disk cache
 #[cfg(feature = "disk-cache")]
 fn build_client() -> surf::Client {
-    surf::Client::new().with(Cache {
+    surf::Client::new().with(Cache(HttpCache {
         mode: CacheMode::Default,
-        cache_manager: CACacheManager::default(),
-    })
+        manager: CACacheManager::default(),
+        options: None,
+    }))
 }
 
 // Builds a default surf client
