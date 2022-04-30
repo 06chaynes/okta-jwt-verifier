@@ -335,7 +335,9 @@ impl Verifier {
             validation.leeway = 120;
         }
         validation.aud = self.aud.clone();
-        validation.iss = Some(self.issuer.clone());
+        let mut iss = HashSet::new();
+        iss.insert(self.issuer.clone());
+        validation.iss = Some(iss);
         let tdata = jsonwebtoken::decode::<T>(
             token,
             &key.key.to_decoding_key(),
