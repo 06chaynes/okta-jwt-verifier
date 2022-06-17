@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.4] - 2022-06-17
+
+### Changed
+
+- Updated the minimum versions of the following dependencies:
+  - async-trait [0.1.56]
+  - http-cache-surf [0.5.0]
+  - jsonwebtoken  [8.1.1]
+  - serde [1.0.137]
+  - serde_json [1.0.81]
+
 ## [0.4.3] - 2022-04-30
 
 ### Added
