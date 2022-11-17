@@ -6,7 +6,7 @@ use tide_http_auth::{
     Authentication, BearerAuthRequest, BearerAuthScheme, Storage,
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Authenticated {
     User,
 }
