@@ -29,8 +29,7 @@
     missing_debug_implementations,
     missing_copy_implementations,
     nonstandard_style,
-    unused_qualifications,
-    rustdoc::missing_doc_code_examples
+    unused_qualifications
 )]
 
 use std::collections::{HashMap, HashSet};
