@@ -25,7 +25,7 @@ jobs:
           command: test
           args: --workspace --all-targets --all-features
 
-  rustfmt:
+  fmt:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
