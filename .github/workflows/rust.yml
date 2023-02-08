@@ -95,3 +95,23 @@ jobs:
         with:
           command: publish
           args: --dry-run
+
+  msrv:
+    name: Verify MSRV
+    needs: [fmt, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      - name: Install cargo msrv
+        uses: baptiste0928/cargo-install@v1
+        with:
+          crate: cargo-msrv
+      - name: Run cargo msrv
+        run: cargo msrv verify

@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.5.0] - 2023-02-07
+
+### Changed
+
+- MSRV is now 1.60.0
+- Edition is now 2021
+
+- Updated the minimum versions of the following dependencies:
+  - anyhow [1.0.69]
+  - jsonwebtoken [8.2.0]
+  - async-trait [0.1.64]
+  - serde [1.0.152]
+  - serde_json [1.0.92]
+  - http-cache-surf [0.6.0]
+  - jwt-simple [0.11.3]
+  - mockito [0.31.1]
+
 ## [0.4.5] - 2022-11-16
 
 ### Changed

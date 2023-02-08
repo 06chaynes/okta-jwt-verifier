@@ -8,6 +8,10 @@ The purpose of this library is to help with the
 verification of access and ID tokens issued by Okta.
 Check the [API Docs](https://docs.rs/okta-jwt-verifier) for more details.
 
+## Minimum Supported Rust Version (MSRV)
+
+1.60.0
+
 ## Install
 
 With [cargo add](https://github.com/killercup/cargo-edit#Installation) installed :

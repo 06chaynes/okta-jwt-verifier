@@ -429,7 +429,7 @@ PBziuVURslNyLdlFsFlm/kfvX+4Cxrbb+pAGETtRTgmAoCDbvuDGRQ==
             n: RSA_MOD.to_string(),
         };
         let claims = Claims::create(Duration::from_hours(2))
-            .with_issuer(&mockito::server_url())
+            .with_issuer(mockito::server_url())
             .with_subject("test");
         let token = key_pair.sign(claims)?;
         let res = Res { keys: vec![jsonwk] };
