@@ -46,7 +46,26 @@ async fn main() -> anyhow::Result<()> {
 }
 ```
 
-### Optional Configuration
+### Optional Configurations
+
+This method will attempt to retrieve the keys using the provided endpoint (default: "/v1/keys")
+
+```rust
+use okta_jwt_verifier::{Config, Verifier, DefaultClaims};
+
+#[async_std::main]
+async fn main() -> anyhow::Result<()> {
+    let token = "token";
+    let issuer = "https://your.domain/oauth2/default";
+    let config: Config =
+            Config { keys_endpoint: Some("/oauth2/v1/keys".to_owned()) };
+    Verifier::new_with_config(&issuer, config)
+        .await?
+        .verify::<DefaultClaims>(&token)
+        .await?;
+    Ok(())
+}
+```
 
 This example shows the use of optional configurations for validation.
 
