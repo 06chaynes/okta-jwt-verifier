@@ -42,6 +42,8 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 #[cfg(feature = "disk-cache")]
 use http_cache_surf::{CACacheManager, Cache, CacheMode, HttpCache};
 
+const DEFAULT_ENDPOINT: &str = "/v1/keys";
+
 /// Describes the default claims inside a decoded token
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DefaultClaims {
@@ -130,8 +132,6 @@ fn build_client() -> surf::Client {
 pub struct Config {
     keys_endpoint: Option<String>,
 }
-
-const DEFAULT_ENDPOINT: &str = "/v1/keys";
 
 impl Default for Config {
     fn default() -> Self {
@@ -410,7 +410,6 @@ mod tests {
     use super::*;
 
     use jwt_simple::prelude::*;
-    use mockito::mock;
 
     #[derive(Debug, serde::Serialize)]
     struct Res {
@@ -455,6 +454,7 @@ PBziuVURslNyLdlFsFlm/kfvX+4Cxrbb+pAGETtRTgmAoCDbvuDGRQ==
 
     #[async_std::test]
     async fn can_verify_token() -> Result<()> {
+        let mut server = mockito::Server::new();
         let key_pair = RS256KeyPair::from_pem(RSA_KP_PEM)?.with_key_id(KEY_ID);
         let jsonwk = Jwk {
             kty: "RSA".to_string(),
@@ -465,15 +465,16 @@ PBziuVURslNyLdlFsFlm/kfvX+4Cxrbb+pAGETtRTgmAoCDbvuDGRQ==
             n: RSA_MOD.to_string(),
         };
         let claims = Claims::create(Duration::from_hours(2))
-            .with_issuer(mockito::server_url())
+            .with_issuer(server.url())
             .with_subject("test");
         let token = key_pair.sign(claims)?;
         let res = Res { keys: vec![jsonwk] };
-        let m = mock("GET", "/v1/keys")
+        let m = server
+            .mock("GET", DEFAULT_ENDPOINT)
             .with_status(200)
             .with_body(serde_json::to_string(&res)?)
             .create();
-        let verifier = Verifier::new(&mockito::server_url()).await?;
+        let verifier = Verifier::new(&server.url()).await?;
         m.assert();
         verifier.verify::<DefaultClaims>(&token).await?;
         Ok(())
@@ -481,6 +482,7 @@ PBziuVURslNyLdlFsFlm/kfvX+4Cxrbb+pAGETtRTgmAoCDbvuDGRQ==
 
     #[async_std::test]
     async fn can_verify_token_with_config() -> Result<()> {
+        let mut server = mockito::Server::new();
         let key_pair = RS256KeyPair::from_pem(RSA_KP_PEM)?.with_key_id(KEY_ID);
         let jsonwk = Jwk {
             kty: "RSA".to_string(),
@@ -493,16 +495,16 @@ PBziuVURslNyLdlFsFlm/kfvX+4Cxrbb+pAGETtRTgmAoCDbvuDGRQ==
         let config: Config =
             Config { keys_endpoint: Some("/oauth2/v1/keys".to_owned()) };
         let claims = Claims::create(Duration::from_hours(2))
-            .with_issuer(mockito::server_url())
+            .with_issuer(server.url())
             .with_subject("test");
         let token = key_pair.sign(claims)?;
         let res = Res { keys: vec![jsonwk] };
-        let m = mock("GET", "/oauth2/v1/keys")
+        let m = server
+            .mock("GET", "/oauth2/v1/keys")
             .with_status(200)
             .with_body(serde_json::to_string(&res)?)
             .create();
-        let verifier =
-            Verifier::new_with_config(&mockito::server_url(), config).await?;
+        let verifier = Verifier::new_with_config(&server.url(), config).await?;
         m.assert();
         verifier.verify::<DefaultClaims>(&token).await?;
         Ok(())
@@ -510,6 +512,7 @@ PBziuVURslNyLdlFsFlm/kfvX+4Cxrbb+pAGETtRTgmAoCDbvuDGRQ==
 
     #[async_std::test]
     async fn can_verify_token_with_empty_config() -> Result<()> {
+        let mut server = mockito::Server::new();
         let key_pair = RS256KeyPair::from_pem(RSA_KP_PEM)?.with_key_id(KEY_ID);
         let jsonwk = Jwk {
             kty: "RSA".to_string(),
@@ -521,16 +524,16 @@ PBziuVURslNyLdlFsFlm/kfvX+4Cxrbb+pAGETtRTgmAoCDbvuDGRQ==
         };
         let config: Config = Config::default();
         let claims = Claims::create(Duration::from_hours(2))
-            .with_issuer(mockito::server_url())
+            .with_issuer(server.url())
             .with_subject("test");
         let token = key_pair.sign(claims)?;
         let res = Res { keys: vec![jsonwk] };
-        let m = mock("GET", "/v1/keys")
+        let m = server
+            .mock("GET", DEFAULT_ENDPOINT)
             .with_status(200)
             .with_body(serde_json::to_string(&res)?)
             .create();
-        let verifier =
-            Verifier::new_with_config(&mockito::server_url(), config).await?;
+        let verifier = Verifier::new_with_config(&server.url(), config).await?;
         m.assert();
         verifier.verify::<DefaultClaims>(&token).await?;
         Ok(())

@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.6.0] - 2023-04-19
+
+### Added
+
+- `new_with_config` method that allows for overriding the default configuration
+- `Config` struct for options passed to the `new_with_config` method
+
+### Changed
+
+- MSRV is now 1.63.0
+
+- Updated the minimum versions of the following dependencies:
+  - anyhow [1.0.70]
+  - jsonwebtoken [8.3.0]
+  - async-trait [0.1.68]
+  - serde [1.0.160]
+  - serde_json [1.0.96]
+  - http-cache-surf [0.9.0]
+  - jwt-simple [0.11.4]
+  - mockito [1.0.2]
+
 ## [0.5.0] - 2023-02-07
 
 ### Changed
