@@ -131,6 +131,14 @@ pub struct Config {
     keys_endpoint: Option<String>,
 }
 
+const DEFAULT_ENDPOINT: &str = "/v1/keys";
+
+impl Default for Config {
+    fn default() -> Self {
+        Self { keys_endpoint: Some(DEFAULT_ENDPOINT.into()) }
+    }
+}
+
 // Builds a default surf client
 #[cfg(not(feature = "disk-cache"))]
 fn build_client() -> surf::Client {
@@ -153,8 +161,7 @@ impl Verifier {
     /// `new` constructs an instance of Verifier and attempts
     /// to retrieve the keys from the specified issuer.
     pub async fn new(issuer: &str) -> Result<Self> {
-        let endpoint = "/v1/keys";
-        let keys = get(issuer, endpoint).await?;
+        let keys = get(issuer, DEFAULT_ENDPOINT).await?;
         Ok(Self {
             issuer: issuer.to_string(),
             cid: None,
@@ -167,7 +174,7 @@ impl Verifier {
     /// `configure` constructs an instance of Verifier and attempts
     /// to retrieve the keys from the specified issuer while specifying extra config.
     pub async fn new_with_config(issuer: &str, config: Config) -> Result<Self> {
-        let mut endpoint = "/v1/keys".to_owned();
+        let mut endpoint = DEFAULT_ENDPOINT.to_owned();
         if let Some(keys_endpoint) = config.keys_endpoint {
             endpoint = keys_endpoint
         }
@@ -512,7 +519,7 @@ PBziuVURslNyLdlFsFlm/kfvX+4Cxrbb+pAGETtRTgmAoCDbvuDGRQ==
             e: "AQAB".to_string(),
             n: RSA_MOD.to_string(),
         };
-        let config: Config = Config { keys_endpoint: None };
+        let config: Config = Config::default();
         let claims = Claims::create(Duration::from_hours(2))
             .with_issuer(mockito::server_url())
             .with_subject("test");
