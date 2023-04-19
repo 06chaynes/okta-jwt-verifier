@@ -125,6 +125,12 @@ fn build_client() -> surf::Client {
     }))
 }
 
+/// Describes optional config when creating a new Verifier
+#[derive(Debug)]
+pub struct Config {
+    keys_endpoint: Option<String>,
+}
+
 // Builds a default surf client
 #[cfg(not(feature = "disk-cache"))]
 fn build_client() -> surf::Client {
@@ -148,7 +154,7 @@ impl Verifier {
     /// to retrieve the keys from the specified issuer.
     pub async fn new(issuer: &str) -> Result<Self> {
         let endpoint = "/v1/keys";
-        let keys = get(issuer, &endpoint).await?;
+        let keys = get(issuer, endpoint).await?;
         Ok(Self {
             issuer: issuer.to_string(),
             cid: None,
@@ -159,9 +165,13 @@ impl Verifier {
     }
 
     /// `configure` constructs an instance of Verifier and attempts
-    /// to retrieve the keys from the specified issuer while specifying a keys endpoint.
-    pub async fn configure(issuer: &str, keys_endpoint: &str) -> Result<Self> {
-        let keys = get(issuer, keys_endpoint).await?;
+    /// to retrieve the keys from the specified issuer while specifying extra config.
+    pub async fn new_with_config(issuer: &str, config: Config) -> Result<Self> {
+        let mut endpoint = "/v1/keys".to_owned();
+        if let Some(keys_endpoint) = config.keys_endpoint {
+            endpoint = keys_endpoint
+        }
+        let keys = get(issuer, &endpoint).await?;
         Ok(Self {
             issuer: issuer.to_string(),
             cid: None,
@@ -170,7 +180,6 @@ impl Verifier {
             keys,
         })
     }
-
 
     /// `verify` will attempt to validate a passed access
     /// or ID token. Upon a successful validation it will then
@@ -363,7 +372,11 @@ impl Verifier {
 
 // Attempts to retrieve the keys from the issuer
 async fn get(issuer: &str, keys_endpoint: &str) -> Result<Jwks> {
-    let url = format!("{issuer}{keys_endpoint}", issuer=&issuer, keys_endpoint=&keys_endpoint);
+    let url = format!(
+        "{issuer}{keys_endpoint}",
+        issuer = &issuer,
+        keys_endpoint = &keys_endpoint
+    );
     let req = surf::get(&url);
     let client = build_client();
     let mut res = match client.send(req).await {
@@ -391,6 +404,7 @@ mod tests {
 
     use jwt_simple::prelude::*;
     use mockito::mock;
+
     #[derive(Debug, serde::Serialize)]
     struct Res {
         keys: Vec<Jwk>,
@@ -459,7 +473,7 @@ PBziuVURslNyLdlFsFlm/kfvX+4Cxrbb+pAGETtRTgmAoCDbvuDGRQ==
     }
 
     #[async_std::test]
-    async fn can_verify_token_with_custom_keys_endpoint() -> Result<()> {
+    async fn can_verify_token_with_config() -> Result<()> {
         let key_pair = RS256KeyPair::from_pem(RSA_KP_PEM)?.with_key_id(KEY_ID);
         let jsonwk = Jwk {
             kty: "RSA".to_string(),
@@ -469,17 +483,47 @@ PBziuVURslNyLdlFsFlm/kfvX+4Cxrbb+pAGETtRTgmAoCDbvuDGRQ==
             e: "AQAB".to_string(),
             n: RSA_MOD.to_string(),
         };
-        let custom_keys_endpoint = "/oauth2/v1/keys";
+        let config: Config =
+            Config { keys_endpoint: Some("/oauth2/v1/keys".to_owned()) };
         let claims = Claims::create(Duration::from_hours(2))
             .with_issuer(mockito::server_url())
             .with_subject("test");
         let token = key_pair.sign(claims)?;
         let res = Res { keys: vec![jsonwk] };
-        let m = mock("GET", custom_keys_endpoint)
+        let m = mock("GET", "/oauth2/v1/keys")
             .with_status(200)
             .with_body(serde_json::to_string(&res)?)
             .create();
-        let verifier = Verifier::configure(&mockito::server_url(), custom_keys_endpoint).await?;
+        let verifier =
+            Verifier::new_with_config(&mockito::server_url(), config).await?;
+        m.assert();
+        verifier.verify::<DefaultClaims>(&token).await?;
+        Ok(())
+    }
+
+    #[async_std::test]
+    async fn can_verify_token_with_empty_config() -> Result<()> {
+        let key_pair = RS256KeyPair::from_pem(RSA_KP_PEM)?.with_key_id(KEY_ID);
+        let jsonwk = Jwk {
+            kty: "RSA".to_string(),
+            alg: "RS256".to_string(),
+            kid: KEY_ID.to_string(),
+            uses: "sig".to_string(),
+            e: "AQAB".to_string(),
+            n: RSA_MOD.to_string(),
+        };
+        let config: Config = Config { keys_endpoint: None };
+        let claims = Claims::create(Duration::from_hours(2))
+            .with_issuer(mockito::server_url())
+            .with_subject("test");
+        let token = key_pair.sign(claims)?;
+        let res = Res { keys: vec![jsonwk] };
+        let m = mock("GET", "/v1/keys")
+            .with_status(200)
+            .with_body(serde_json::to_string(&res)?)
+            .create();
+        let verifier =
+            Verifier::new_with_config(&mockito::server_url(), config).await?;
         m.assert();
         verifier.verify::<DefaultClaims>(&token).await?;
         Ok(())
