@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.1] - 2023-04-20
+
+### Changed
+
+- `keys_endpoint` field in `Config` struct set to public
+
 ## [0.6.0] - 2023-04-19
 
 ### Added
