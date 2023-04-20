@@ -130,7 +130,8 @@ fn build_client() -> surf::Client {
 /// Describes optional config when creating a new Verifier
 #[derive(Debug)]
 pub struct Config {
-    keys_endpoint: Option<String>,
+    /// The endpoint to retrieve json web keys from
+    pub keys_endpoint: Option<String>,
 }
 
 impl Default for Config {
