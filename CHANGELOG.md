@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.2] - 2023-07-19
+
+### Changed
+
+- Updated the minimum versions of the following dependencies:
+  - anyhow [1.0.72]
+  - async-trait [0.1.71]
+  - serde [1.0.171]
+  - serde_json [1.0.103]
+  - http-cache-surf [0.11.0]
+  - jwt-simple [0.11.6]
+  - mockito [1.1.0]
+
 ## [0.6.1] - 2023-04-20
 
 ### Changed

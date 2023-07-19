@@ -40,7 +40,7 @@ use jsonwebtoken::{TokenData, Validation};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 #[cfg(feature = "disk-cache")]
-use http_cache_surf::{CACacheManager, Cache, CacheMode, HttpCache};
+use http_cache_surf::{CACacheManager, Cache, CacheMode, HttpCache, HttpCacheOptions};
 
 const DEFAULT_ENDPOINT: &str = "/v1/keys";
 
@@ -123,7 +123,7 @@ fn build_client() -> surf::Client {
     surf::Client::new().with(Cache(HttpCache {
         mode: CacheMode::Default,
         manager: CACacheManager::default(),
-        options: None,
+        options: HttpCacheOptions::default(),
     }))
 }
 
