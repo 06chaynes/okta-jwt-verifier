@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.7.0] - 2023-07-29
+
+### Added
+
+- `client-surf` feature that enables the `surf` client for remote requests. This is enabled by default.
+- `cache-surf` feature that enables cache on disk to store keys when using the `surf` client. This is disabled by default.
+- `client-reqwest` feature that enables the `reqwest` client for remote requests. This is disabled by default.
+- `cache-reqwest` feature that enables cache on disk to store keys when using the `reqwest` client. This is disabled by default.
+
+### Changed
+
+- MSRV is now 1.65.0
+- 
+- Updated the minimum versions of the following dependencies:
+  - async-trait [0.1.72]
+  - serde [1.0.178]
+  - serde_json [1.0.104]
+  - http-cache-surf [0.11.2]
+
 ## [0.6.2] - 2023-07-19
 
 ### Changed

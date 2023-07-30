@@ -10,7 +10,7 @@ Check the [API Docs](https://docs.rs/okta-jwt-verifier) for more details.
 
 ## Minimum Supported Rust Version (MSRV)
 
-1.63.0
+1.65.0
 
 ## Install
 
@@ -110,12 +110,20 @@ dbg!(&claims)
 
 ### Key Caching
 
-This example matches the basic example but would cache the keys on disk. Requires the `disk-cache` feature to be enabled (disabled by default). Creates an `http-cacache` directory relative to the working directory where the cache files will reside.
+This example matches the basic example but would cache the keys on disk. Requires the `cache-surf` or `cache-reqwest` feature to be enabled (disabled by default). Creates an `http-cacache` directory relative to the working directory where the cache files will reside.
 
 With [cargo add](https://github.com/killercup/cargo-edit#Installation) installed :
 
+For surf:
+
 ```sh
-cargo add okta-jwt-verifier --features disk-cache
+cargo add okta-jwt-verifier --features cache-surf
+```
+
+For reqwest:
+
+```sh
+cargo add okta-jwt-verifier --no-default-features --features client-reqwest,cache-reqwest
 ```
 
 ### Tide Middleware
@@ -128,9 +136,12 @@ This example implements the basic usage example as tide middleware.
 
 ## Features
 
-The following features are available. By default no features are enabled.
+The following features are available. By default `client-surf` is enabled.
 
-- `disk-cache`: use a cache on disk to store keys (respects cache-control).
+- `client-surf` feature that enables the `surf` client for remote requests. This is enabled by default.
+- `cache-surf` feature that enables cache on disk to store keys when using the `surf` client (respects cache-control). This is disabled by default.
+- `client-reqwest` feature that enables the `reqwest` client for remote requests. This is disabled by default.
+- `cache-reqwest` feature that enables cache on disk to store keys when using the `reqwest` client (respects cache-control). This is disabled by default.
 
 ## Documentation
 

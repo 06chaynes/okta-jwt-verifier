@@ -32,6 +32,22 @@
     unused_qualifications
 )]
 
+#[cfg(not(any(feature = "client-surf", feature = "client-reqwest")))]
+compile_error!("Either feature \"client-surf\" or \"client-reqwest\" must be enabled for this crate.");
+
+#[cfg(all(feature = "client-surf", feature = "client-reqwest"))]
+compile_error!("Only either feature \"client-surf\" or \"client-reqwest\" must be enabled for this crate, not both.");
+
+#[cfg(all(feature = "cache-surf", not(feature = "client-surf")))]
+compile_error!(
+    "Feature \"cache-surf\" requires that \"client-surf\" be enabled."
+);
+
+#[cfg(all(feature = "cache-reqwest", not(feature = "client-reqwest")))]
+compile_error!(
+    "Feature \"cache-reqwest\" requires that \"client-reqwest\" be enabled."
+);
+
 use std::collections::{HashMap, HashSet};
 
 use anyhow::{bail, Result};
@@ -39,8 +55,15 @@ use jsonwebkey::JsonWebKey;
 use jsonwebtoken::{TokenData, Validation};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-#[cfg(feature = "disk-cache")]
-use http_cache_surf::{CACacheManager, Cache, CacheMode, HttpCache, HttpCacheOptions};
+#[cfg(feature = "cache-surf")]
+use http_cache_surf::{
+    CACacheManager, Cache, CacheMode, HttpCache, HttpCacheOptions,
+};
+
+#[cfg(feature = "cache-reqwest")]
+use http_cache_reqwest::{
+    CACacheManager, Cache, CacheMode, HttpCache, HttpCacheOptions,
+};
 
 const DEFAULT_ENDPOINT: &str = "/v1/keys";
 
@@ -117,16 +140,6 @@ impl Jwks {
     }
 }
 
-// Builds a surf client configured to use a disk cache
-#[cfg(feature = "disk-cache")]
-fn build_client() -> surf::Client {
-    surf::Client::new().with(Cache(HttpCache {
-        mode: CacheMode::Default,
-        manager: CACacheManager::default(),
-        options: HttpCacheOptions::default(),
-    }))
-}
-
 /// Describes optional config when creating a new Verifier
 #[derive(Debug)]
 pub struct Config {
@@ -138,12 +151,6 @@ impl Default for Config {
     fn default() -> Self {
         Self { keys_endpoint: Some(DEFAULT_ENDPOINT.into()) }
     }
-}
-
-// Builds a default surf client
-#[cfg(not(feature = "disk-cache"))]
-fn build_client() -> surf::Client {
-    surf::Client::new()
 }
 
 /// Attempts to retrieve the keys from an Okta issuer,
@@ -385,8 +392,34 @@ async fn get(issuer: &str, keys_endpoint: &str) -> Result<Jwks> {
         issuer = &issuer,
         keys_endpoint = &keys_endpoint
     );
-    let req = surf::get(&url);
-    let client = build_client();
+    let keys = remote_fetch(&url).await?;
+    let mut keymap = Jwks { inner: HashMap::new() };
+    for key in keys {
+        keymap.inner.insert(key.kid.clone(), key);
+    }
+    Ok(keymap)
+}
+
+// Builds a default surf client
+#[cfg(all(feature = "client-surf", not(feature = "cache-surf")))]
+fn build_surf_client() -> surf::Client {
+    surf::Client::new()
+}
+
+// Builds a surf client configured to use a disk cache
+#[cfg(all(feature = "client-surf", feature = "cache-surf"))]
+fn build_surf_client() -> surf::Client {
+    surf::Client::new().with(Cache(HttpCache {
+        mode: CacheMode::Default,
+        manager: CACacheManager::default(),
+        options: HttpCacheOptions::default(),
+    }))
+}
+
+#[cfg(feature = "client-surf")]
+async fn remote_fetch(url: &str) -> Result<Vec<Jwk>> {
+    let req = surf::get(url);
+    let client = build_surf_client();
     let mut res = match client.send(req).await {
         Ok(r) => r,
         Err(e) => {
@@ -399,11 +432,33 @@ async fn get(issuer: &str, keys_endpoint: &str) -> Result<Jwks> {
             bail!(e)
         }
     };
-    let mut keymap = Jwks { inner: HashMap::new() };
-    for key in keys {
-        keymap.inner.insert(key.kid.clone(), key);
-    }
-    Ok(keymap)
+    Ok(keys)
+}
+
+// Builds a default reqwest client
+#[cfg(all(feature = "client-reqwest", not(feature = "cache-reqwest")))]
+fn build_reqwest_client() -> reqwest_middleware::ClientWithMiddleware {
+    reqwest_middleware::ClientBuilder::new(reqwest::Client::new()).build()
+}
+
+// Builds a reqwest client configured to use a disk cache
+#[cfg(all(feature = "client-reqwest", feature = "cache-reqwest"))]
+fn build_reqwest_client() -> reqwest_middleware::ClientWithMiddleware {
+    reqwest_middleware::ClientBuilder::new(reqwest::Client::new())
+        .with(Cache(HttpCache {
+            mode: CacheMode::Default,
+            manager: CACacheManager::default(),
+            options: HttpCacheOptions::default(),
+        }))
+        .build()
+}
+
+#[cfg(feature = "client-reqwest")]
+async fn remote_fetch(url: &str) -> Result<Vec<Jwk>> {
+    let client = build_reqwest_client();
+    let res = client.get(url).send().await?;
+    let KeyResponse { keys } = res.json().await?;
+    Ok(keys)
 }
 
 #[cfg(test)]
@@ -411,6 +466,11 @@ mod tests {
     use super::*;
 
     use jwt_simple::prelude::*;
+
+    #[cfg(feature = "client-surf")]
+    use async_std::test as async_test;
+    #[cfg(feature = "client-reqwest")]
+    use tokio::test as async_test;
 
     #[derive(Debug, serde::Serialize)]
     struct Res {
@@ -453,7 +513,7 @@ PBziuVURslNyLdlFsFlm/kfvX+4Cxrbb+pAGETtRTgmAoCDbvuDGRQ==
 
     const RSA_MOD: &str = r"yqq0N5u8Jvl-BLH2VMP_NAv_zY9T8mSq0V2Gk5Ql5H1a-4qi3viorUXG3AvIEEccpLsW85ps5-I9itp74jllRjA5HG5smbb-Oym0m2Hovfj6qP_1m1drQg8oth6tNmupNqVzlGGWZLsSCBLuMa3pFaPhoxl9lGU3XJIQ1_evMkOb98I3hHb4ELn3WGtNlAVkbP20R8sSii_zFjPqrG_NbSPLyAl1ctbG2d8RllQF1uRIqYQj85yx73hqQCMpYWU3d9QzpkLf_C35_79qNnSKa3t0cyDKinOY7JGIwh8DWAa4pfEzgg56yLcilYSSohXeaQV0nR8-rm9J8GUYXjPK7w";
 
-    #[async_std::test]
+    #[async_test]
     async fn can_verify_token() -> Result<()> {
         let mut server = mockito::Server::new();
         let key_pair = RS256KeyPair::from_pem(RSA_KP_PEM)?.with_key_id(KEY_ID);
@@ -481,7 +541,7 @@ PBziuVURslNyLdlFsFlm/kfvX+4Cxrbb+pAGETtRTgmAoCDbvuDGRQ==
         Ok(())
     }
 
-    #[async_std::test]
+    #[async_test]
     async fn can_verify_token_with_config() -> Result<()> {
         let mut server = mockito::Server::new();
         let key_pair = RS256KeyPair::from_pem(RSA_KP_PEM)?.with_key_id(KEY_ID);
@@ -511,7 +571,7 @@ PBziuVURslNyLdlFsFlm/kfvX+4Cxrbb+pAGETtRTgmAoCDbvuDGRQ==
         Ok(())
     }
 
-    #[async_std::test]
+    #[async_test]
     async fn can_verify_token_with_empty_config() -> Result<()> {
         let mut server = mockito::Server::new();
         let key_pair = RS256KeyPair::from_pem(RSA_KP_PEM)?.with_key_id(KEY_ID);

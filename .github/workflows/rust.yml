@@ -1,117 +1,70 @@
-name: Rust
+name: rust
 
 on:
   push:
-    branches: [ latest ]
+    branches: [latest]
   pull_request:
 
 env:
   CARGO_TERM_COLOR: always
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --workspace --all-targets --all-features
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
 
+jobs:
   fmt:
+    name: Check formatting
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          profile: minimal
-          override: true
-          components: rustfmt
-      - name: Check formatting
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+          components: "rustfmt"
+      - run: cargo fmt -- --check
+
+  test:
+    name: Test stable on ${{ matrix.os }}
+    needs: [fmt]
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macOS-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - run: |
+          cargo test --all-targets
+          cargo test --all-targets --features cache-surf
+          cargo test --all-targets --no-default-features --features client-reqwest
+          cargo test --all-targets --no-default-features --features client-reqwest,cache-reqwest
 
   clippy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-          components: clippy
-      - name: Clippy check
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --lib --tests --all-features --all-targets --workspace -- -D warnings
-
-  docs:
-    name: Docs
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-      - name: Check documentation
-        env:
-          RUSTDOCFLAGS: -D warnings
-        uses: actions-rs/cargo@v1
-        with:
-          command: doc
-          args: --no-deps --document-private-items --workspace
-
-  publish-check:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: publish
-          args: --dry-run
-
-  msrv:
-    name: Verify MSRV
+    name: Check clippy
     needs: [fmt, test]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          profile: minimal
-          override: true
-      - name: Install cargo msrv
-        uses: baptiste0928/cargo-install@v1
-        with:
-          crate: cargo-msrv
-      - name: Run cargo msrv
-        run: cargo msrv verify
+          components: "clippy"
+      - run: |
+          cargo clippy --lib --tests --all-targets -- -D warnings
+          cargo clippy --lib --tests --all-targets --features cache-surf -- -D warnings
+          cargo clippy --lib --tests --all-targets --no-default-features --features client-reqwest -- -D warnings
+          cargo clippy --lib --tests --all-targets --no-default-features --features client-reqwest,cache-reqwest -- -D warnings
+
+  docs:
+    name: Build docs
+    needs: [fmt, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@nightly
+        env:
+          RUSTFLAGS: --cfg docsrs
+          RUSTDOCFLAGS: --cfg docsrs -Dwarnings
+      - run: cargo doc --no-deps --document-private-items
