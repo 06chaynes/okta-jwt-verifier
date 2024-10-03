@@ -48,11 +48,8 @@ jobs:
           cargo clippy --lib --tests --all-targets --no-default-features --features client-reqwest,cache-reqwest -- -D warnings
 
       - name: Run cargo test
-        run: |
-          # cargo test --all-targets
-          # cargo test --all-targets --features cache-surf
-          cargo test --all-targets --no-default-features --features client-reqwest
-          # cargo test --all-targets --no-default-features --features client-reqwest,cache-reqwest
+        run: cargo test --all-targets --no-default-features --features client-reqwest
+
 
       - name: Build docs
         run: cargo +nightly doc --no-deps --document-private-items
