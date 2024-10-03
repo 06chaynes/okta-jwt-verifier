@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.8.0] - 2024-10-03
+
+### Changed
+
+- MSRV is now 1.73.0
+  
+- Updated the minimum versions of the following dependencies:
+  - jsonwebtoken [9.3.0]
+  - reqwest [0.12.8]
+  - reqwest-middleware [0.3.3]
+  - http-cache-surf [0.13.0]
+  - http-cache-reqwest [0.14.0]
+
+- Removed the following dependencies:
+  - jsonwebkey
+
 ## [0.7.0] - 2023-07-29
 
 ### Added
@@ -12,7 +28,7 @@
 ### Changed
 
 - MSRV is now 1.65.0
-- 
+ 
 - Updated the minimum versions of the following dependencies:
   - async-trait [0.1.72]
   - serde [1.0.178]

@@ -51,7 +51,6 @@ compile_error!(
 use std::collections::{HashMap, HashSet};
 
 use anyhow::{bail, Result};
-use jsonwebkey::JsonWebKey;
 use jsonwebtoken::{TokenData, Validation};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
@@ -353,13 +352,15 @@ impl Verifier {
     where
         T: DeserializeOwned,
     {
-        let key: JsonWebKey = serde_json::to_string(key_jwk)?.parse()?;
+        let decoding_key = jsonwebtoken::DecodingKey::from_rsa_components(
+            &key_jwk.n, &key_jwk.e,
+        )?;
         let mut validation = Validation::new(jsonwebtoken::Algorithm::RS256);
         if let Some(cid) = &self.cid {
             // This isn't ideal but what we have to do for now
             let cid_tdata = jsonwebtoken::decode::<ClientId>(
                 token,
-                &key.key.to_decoding_key(),
+                &decoding_key,
                 &validation,
             )?;
             if &cid_tdata.claims.cid != cid {
@@ -376,11 +377,8 @@ impl Verifier {
         let mut iss = HashSet::new();
         iss.insert(self.issuer.clone());
         validation.iss = Some(iss);
-        let tdata = jsonwebtoken::decode::<T>(
-            token,
-            &key.key.to_decoding_key(),
-            &validation,
-        )?;
+        let tdata =
+            jsonwebtoken::decode::<T>(token, &decoding_key, &validation)?;
         Ok(tdata)
     }
 }
@@ -515,7 +513,7 @@ PBziuVURslNyLdlFsFlm/kfvX+4Cxrbb+pAGETtRTgmAoCDbvuDGRQ==
 
     #[async_test]
     async fn can_verify_token() -> Result<()> {
-        let mut server = mockito::Server::new();
+        let mut server = mockito::Server::new_async().await;
         let key_pair = RS256KeyPair::from_pem(RSA_KP_PEM)?.with_key_id(KEY_ID);
         let jsonwk = Jwk {
             kty: "RSA".to_string(),
@@ -543,7 +541,7 @@ PBziuVURslNyLdlFsFlm/kfvX+4Cxrbb+pAGETtRTgmAoCDbvuDGRQ==
 
     #[async_test]
     async fn can_verify_token_with_config() -> Result<()> {
-        let mut server = mockito::Server::new();
+        let mut server = mockito::Server::new_async().await;
         let key_pair = RS256KeyPair::from_pem(RSA_KP_PEM)?.with_key_id(KEY_ID);
         let jsonwk = Jwk {
             kty: "RSA".to_string(),
@@ -573,7 +571,7 @@ PBziuVURslNyLdlFsFlm/kfvX+4Cxrbb+pAGETtRTgmAoCDbvuDGRQ==
 
     #[async_test]
     async fn can_verify_token_with_empty_config() -> Result<()> {
-        let mut server = mockito::Server::new();
+        let mut server = mockito::Server::new_async().await;
         let key_pair = RS256KeyPair::from_pem(RSA_KP_PEM)?.with_key_id(KEY_ID);
         let jsonwk = Jwk {
             kty: "RSA".to_string(),

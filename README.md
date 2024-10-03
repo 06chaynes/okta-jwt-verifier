@@ -10,7 +10,7 @@ Check the [API Docs](https://docs.rs/okta-jwt-verifier) for more details.
 
 ## Minimum Supported Rust Version (MSRV)
 
-1.65.0
+1.73.0
 
 ## Install
 
