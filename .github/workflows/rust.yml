@@ -35,9 +35,6 @@ jobs:
           cache-directories: "~/.npm"
           cache-all-crates: true
 
-      - name: Install libssl-dev
-        run: sudo apt install -y libssl-dev
-
       - name: Check formatting
         run: cargo fmt -- --check
 
