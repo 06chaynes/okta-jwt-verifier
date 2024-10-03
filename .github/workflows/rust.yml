@@ -4,6 +4,7 @@ on:
   push:
     branches: [latest]
   pull_request:
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
@@ -13,19 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  fmt:
-    name: Check formatting
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: "rustfmt"
-      - run: cargo fmt -- --check
-
-  test:
-    name: Test stable on ${{ matrix.os }}
-    needs: [fmt]
+  test_library:
+    name: Test library on ${{ matrix.os }}
     strategy:
       matrix:
         os:
@@ -34,37 +24,42 @@ jobs:
           - macOS-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-      - run: |
-          cargo test --all-targets
-          cargo test --all-targets --features cache-surf
-          cargo test --all-targets --no-default-features --features client-reqwest
-          cargo test --all-targets --no-default-features --features client-reqwest,cache-reqwest
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  clippy:
-    name: Check clippy
-    needs: [fmt, test]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Setup rust stable
+        run: rustup toolchain install stable --profile minimal --no-self-update
+
+      - name: Setup rust nightly
+        run: rustup toolchain install nightly --profile minimal --no-self-update
+
+      - name: Initialize cache
+        uses: Swatinem/rust-cache@v2
         with:
-          components: "clippy"
-      - run: |
+          prefix-key: ${{ github.ref_name }}
+          shared-key: ${{ runner.os }}
+          cache-directories: "~/.npm"
+          cache-all-crates: true
+
+      - name: Check formatting
+        run: cargo fmt -- --check
+
+      - name: Check clippy
+        run: |
           cargo clippy --lib --tests --all-targets -- -D warnings
           cargo clippy --lib --tests --all-targets --features cache-surf -- -D warnings
           cargo clippy --lib --tests --all-targets --no-default-features --features client-reqwest -- -D warnings
           cargo clippy --lib --tests --all-targets --no-default-features --features client-reqwest,cache-reqwest -- -D warnings
 
-  docs:
-    name: Build docs
-    needs: [fmt, test]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly
+      - name: Run cargo test
+        run: |
+          cargo test --all-targets
+          cargo test --all-targets --features cache-surf
+          cargo test --all-targets --no-default-features --features client-reqwest
+          cargo test --all-targets --no-default-features --features client-reqwest,cache-reqwest
+
+      - name: Build docs
+        run: cargo +nightly doc --no-deps --document-private-items
         env:
           RUSTFLAGS: --cfg docsrs
           RUSTDOCFLAGS: --cfg docsrs -Dwarnings
-      - run: cargo doc --no-deps --document-private-items
