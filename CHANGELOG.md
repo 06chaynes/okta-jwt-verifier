@@ -4,6 +4,9 @@
 
 ### Changed
 
+- `client-reqwest` feature is now enabled by default.
+- `client-surf` feature is now disabled by default.
+
 - MSRV is now 1.73.0
   
 - Updated the minimum versions of the following dependencies:

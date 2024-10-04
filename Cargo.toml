@@ -34,7 +34,7 @@ tide-http-auth = "0.5.0"
 tokio = { version = "1.40.0", features = [ "macros", "rt", "rt-multi-thread" ] }
 
 [features]
-default = ["client-surf"]
+default = ["client-reqwest"]
 client-surf = ["surf"]
 client-reqwest = ["reqwest", "reqwest-middleware"]
 cache-surf = ["http-cache-surf"]

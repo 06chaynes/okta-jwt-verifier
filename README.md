@@ -110,20 +110,20 @@ dbg!(&claims)
 
 ### Key Caching
 
-This example matches the basic example but would cache the keys on disk. Requires the `cache-surf` or `cache-reqwest` feature to be enabled (disabled by default). Creates an `http-cacache` directory relative to the working directory where the cache files will reside.
+This example matches the basic example but would cache the keys on disk. Requires the `cache-reqwest` or `cache-surf` feature to be enabled (disabled by default). Creates an `http-cacache` directory relative to the working directory where the cache files will reside.
 
 With [cargo add](https://github.com/killercup/cargo-edit#Installation) installed :
-
-For surf:
-
-```sh
-cargo add okta-jwt-verifier --features cache-surf
-```
 
 For reqwest:
 
 ```sh
-cargo add okta-jwt-verifier --no-default-features --features client-reqwest,cache-reqwest
+cargo add okta-jwt-verifier --features cache-reqwest
+```
+
+For surf:
+
+```sh
+cargo add okta-jwt-verifier --no-default-features  --features client-surf,cache-surf
 ```
 
 ### Tide Middleware
@@ -136,12 +136,12 @@ This example implements the basic usage example as tide middleware.
 
 ## Features
 
-The following features are available. By default `client-surf` is enabled.
+The following features are available. By default `client-reqwest` is enabled.
 
-- `client-surf` feature that enables the `surf` client for remote requests. This is enabled by default.
-- `cache-surf` feature that enables cache on disk to store keys when using the `surf` client (respects cache-control). This is disabled by default.
-- `client-reqwest` feature that enables the `reqwest` client for remote requests. This is disabled by default.
+- `client-reqwest` feature that enables the `reqwest` client for remote requests. This is enabled by default.
 - `cache-reqwest` feature that enables cache on disk to store keys when using the `reqwest` client (respects cache-control). This is disabled by default.
+- `client-surf` feature that enables the `surf` client for remote requests. This is disabled by default.
+- `cache-surf` feature that enables cache on disk to store keys when using the `surf` client (respects cache-control). This is disabled by default.
 
 ## Documentation
 
