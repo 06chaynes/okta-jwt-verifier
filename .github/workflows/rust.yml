@@ -16,7 +16,10 @@ concurrency:
 jobs:
   test_library:
     name: Test library
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,7 +34,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           prefix-key: ${{ github.ref_name }}
-          shared-key: ${{ runner.os }}
+          shared-key: ${{ matrix.os }}
           cache-all-crates: true
 
       - name: Check formatting
@@ -45,8 +48,11 @@ jobs:
           cargo clippy --lib --tests --all-targets --no-default-features --features client-reqwest,cache-reqwest -- -D warnings
 
       - name: Run cargo test
-        run: cargo test --all-targets --no-default-features --features client-reqwest
-
+        run: |
+          cargo test --all-targets
+          cargo test --all-targets --features cache-surf
+          cargo test --all-targets --no-default-features --features client-reqwest
+          cargo test --all-targets --no-default-features --features client-reqwest,cache-reqwest
 
       - name: Build docs
         run: cargo +nightly doc --no-deps --document-private-items
