@@ -355,6 +355,16 @@ impl Verifier {
     {
         let key: JsonWebKey = serde_json::to_string(key_jwk)?.parse()?;
         let mut validation = Validation::new(jsonwebtoken::Algorithm::RS256);
+        if let Some(secs) = self.leeway {
+            validation.leeway = secs;
+        } else {
+            // default PT2M
+            validation.leeway = 120;
+        }
+        validation.aud = self.aud.clone();
+        let mut iss = HashSet::new();
+        iss.insert(self.issuer.clone());
+        validation.iss = Some(iss);
         if let Some(cid) = &self.cid {
             // This isn't ideal but what we have to do for now
             let cid_tdata = jsonwebtoken::decode::<ClientId>(
@@ -366,16 +376,6 @@ impl Verifier {
                 bail!("client_id validation failed!")
             }
         }
-        if let Some(secs) = self.leeway {
-            validation.leeway = secs;
-        } else {
-            // default PT2M
-            validation.leeway = 120;
-        }
-        validation.aud = self.aud.clone();
-        let mut iss = HashSet::new();
-        iss.insert(self.issuer.clone());
-        validation.iss = Some(iss);
         let tdata = jsonwebtoken::decode::<T>(
             token,
             &key.key.to_decoding_key(),
