@@ -373,7 +373,10 @@ impl Verifier {
             // default PT2M
             validation.leeway = 120;
         }
-        validation.aud = self.aud.clone();
+        if let Some(aud) = &self.aud {
+            validation
+                .set_audience(&aud.iter().cloned().collect::<Vec<String>>());
+        }
         let mut iss = HashSet::new();
         iss.insert(self.issuer.clone());
         validation.iss = Some(iss);
