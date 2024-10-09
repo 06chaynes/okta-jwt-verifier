@@ -162,6 +162,9 @@ pub struct Verifier {
     leeway: Option<u64>,
     aud: Option<HashSet<String>>,
     keys: Jwks,
+    validate_aud: bool,
+    validate_exp: bool,
+    validate_nbf: bool,
 }
 
 impl Verifier {
@@ -175,6 +178,9 @@ impl Verifier {
             leeway: None,
             aud: None,
             keys,
+            validate_aud: true,
+            validate_exp: true,
+            validate_nbf: false,
         })
     }
 
@@ -192,6 +198,9 @@ impl Verifier {
             leeway: None,
             aud: None,
             keys,
+            validate_aud: true,
+            validate_exp: true,
+            validate_nbf: false,
         })
     }
 
@@ -333,6 +342,78 @@ impl Verifier {
         self
     }
 
+    /// `validate_aud` is for overriding the validation of the audience claim.
+    /// By default this is set to true.
+    /// 
+    /// ```no_run
+    /// use okta_jwt_verifier::{Verifier, DefaultClaims};
+    /// 
+    /// #[async_std::main]
+    /// async fn main() -> anyhow::Result<()> {
+    ///     let token = "token";
+    ///     let issuer = "https://your.domain/oauth2/default";
+    ///
+    ///     Verifier::new(&issuer)
+    ///         .await?
+    ///         .validate_aud(false)
+    ///         .verify::<DefaultClaims>(&token)
+    ///         .await?;
+    ///     Ok(())
+    /// }
+    ///```
+    pub fn validate_aud(mut self, validate_aud: bool) -> Self {
+        self.validate_aud = validate_aud;
+        self
+    }
+
+    /// `validate_exp` is for overriding the validation of the expiration claim.
+    /// By default this is set to true.
+    /// 
+    /// ```no_run
+    /// use okta_jwt_verifier::{Verifier, DefaultClaims};
+    /// 
+    /// #[async_std::main]
+    /// async fn main() -> anyhow::Result<()> {
+    ///     let token = "token";
+    ///     let issuer = "https://your.domain/oauth2/default";
+    ///
+    ///     Verifier::new(&issuer)
+    ///         .await?
+    ///         .validate_exp(false)
+    ///         .verify::<DefaultClaims>(&token)
+    ///         .await?;
+    ///     Ok(())
+    /// }
+    ///```
+    pub fn validate_exp(mut self, validate_exp: bool) -> Self {
+        self.validate_exp = validate_exp;
+        self
+    }
+
+    /// `validate_nbf` is for overriding the validation of the not before claim.
+    /// By default this is set to false.
+    /// 
+    /// ```no_run
+    /// use okta_jwt_verifier::{Verifier, DefaultClaims};
+    /// 
+    /// #[async_std::main]
+    /// async fn main() -> anyhow::Result<()> {
+    ///     let token = "token";
+    ///     let issuer = "https://your.domain/oauth2/default";
+    ///
+    ///     Verifier::new(&issuer)
+    ///         .await?
+    ///         .validate_nbf(true)
+    ///         .verify::<DefaultClaims>(&token)
+    ///         .await?;
+    ///     Ok(())
+    /// }
+    ///```
+    pub fn validate_nbf(mut self, validate_nbf: bool) -> Self {
+        self.validate_nbf = validate_nbf;
+        self
+    }
+
     // Attempts to retrieve a key id for a given token
     fn key_id(&self, token: &str) -> Result<String> {
         let header = jsonwebtoken::decode_header(token)?;
@@ -356,6 +437,19 @@ impl Verifier {
             &key_jwk.n, &key_jwk.e,
         )?;
         let mut validation = Validation::new(jsonwebtoken::Algorithm::RS256);
+        if let Some(secs) = self.leeway {
+            validation.leeway = secs;
+        } else {
+            // default PT2M
+            validation.leeway = 120;
+        }
+        validation.aud = self.aud.clone();
+        let mut iss = HashSet::new();
+        iss.insert(self.issuer.clone());
+        validation.iss = Some(iss);
+        validation.validate_aud = self.validate_aud;
+        validation.validate_exp = self.validate_exp;
+        validation.validate_nbf = self.validate_nbf;
         if let Some(cid) = &self.cid {
             // This isn't ideal but what we have to do for now
             let cid_tdata = jsonwebtoken::decode::<ClientId>(
@@ -367,16 +461,6 @@ impl Verifier {
                 bail!("client_id validation failed!")
             }
         }
-        if let Some(secs) = self.leeway {
-            validation.leeway = secs;
-        } else {
-            // default PT2M
-            validation.leeway = 120;
-        }
-        validation.aud = self.aud.clone();
-        let mut iss = HashSet::new();
-        iss.insert(self.issuer.clone());
-        validation.iss = Some(iss);
         let tdata =
             jsonwebtoken::decode::<T>(token, &decoding_key, &validation)?;
         Ok(tdata)

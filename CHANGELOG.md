@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.0] - 2024-10-09
+
+### Added
+
+- `validate_aud` field and method to `Verifier` for overriding the validation of the audience claim. This is set to `true` by default.
+- `validate_exp` field and method to `Verifier` for overriding the validation of the expiration claim. This is set to `true` by default.
+- `validate_nbf` field and method to `Verifier` for overriding the validation of the not before claim. This is set to `false` by default.
+
 ## [0.8.0] - 2024-10-03
 
 ### Changed
