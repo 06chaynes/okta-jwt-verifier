@@ -344,10 +344,10 @@ impl Verifier {
 
     /// `validate_aud` is for overriding the validation of the audience claim.
     /// By default this is set to true.
-    /// 
+    ///
     /// ```no_run
     /// use okta_jwt_verifier::{Verifier, DefaultClaims};
-    /// 
+    ///
     /// #[async_std::main]
     /// async fn main() -> anyhow::Result<()> {
     ///     let token = "token";
@@ -368,10 +368,10 @@ impl Verifier {
 
     /// `validate_exp` is for overriding the validation of the expiration claim.
     /// By default this is set to true.
-    /// 
+    ///
     /// ```no_run
     /// use okta_jwt_verifier::{Verifier, DefaultClaims};
-    /// 
+    ///
     /// #[async_std::main]
     /// async fn main() -> anyhow::Result<()> {
     ///     let token = "token";
@@ -392,10 +392,10 @@ impl Verifier {
 
     /// `validate_nbf` is for overriding the validation of the not before claim.
     /// By default this is set to false.
-    /// 
+    ///
     /// ```no_run
     /// use okta_jwt_verifier::{Verifier, DefaultClaims};
-    /// 
+    ///
     /// #[async_std::main]
     /// async fn main() -> anyhow::Result<()> {
     ///     let token = "token";
