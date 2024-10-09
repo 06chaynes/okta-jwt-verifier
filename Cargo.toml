@@ -23,7 +23,6 @@ reqwest = { version = "0.12.8", features = ["json"], optional = true }
 reqwest-middleware = { version = "0.3.3", optional = true }
 http-cache-surf = { version = "0.13.0", optional = true }
 http-cache-reqwest = { version = "0.14.0", optional = true }
-jsonwebkey = { git = "https://github.com/06chaynes/jwk-rs", branch = "update-deps", features = ["jwt-convert"]}
 
 [dev-dependencies]
 async-trait = "0.1.72"

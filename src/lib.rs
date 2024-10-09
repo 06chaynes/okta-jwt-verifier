@@ -51,7 +51,6 @@ compile_error!(
 use std::collections::{HashMap, HashSet};
 
 use anyhow::{bail, Result};
-use jsonwebkey::JsonWebKey;
 use jsonwebtoken::{TokenData, Validation};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
@@ -163,6 +162,9 @@ pub struct Verifier {
     leeway: Option<u64>,
     aud: Option<HashSet<String>>,
     keys: Jwks,
+    validate_aud: bool,
+    validate_exp: bool,
+    validate_nbf: bool,
 }
 
 impl Verifier {
@@ -176,6 +178,9 @@ impl Verifier {
             leeway: None,
             aud: None,
             keys,
+            validate_aud: true,
+            validate_exp: true,
+            validate_nbf: false,
         })
     }
 
@@ -193,6 +198,9 @@ impl Verifier {
             leeway: None,
             aud: None,
             keys,
+            validate_aud: true,
+            validate_exp: true,
+            validate_nbf: false,
         })
     }
 
@@ -353,7 +361,9 @@ impl Verifier {
     where
         T: DeserializeOwned,
     {
-        let key: JsonWebKey = serde_json::to_string(key_jwk)?.parse()?;
+        let decoding_key = jsonwebtoken::DecodingKey::from_rsa_components(
+            &key_jwk.n, &key_jwk.e,
+        )?;
         let mut validation = Validation::new(jsonwebtoken::Algorithm::RS256);
         if let Some(secs) = self.leeway {
             validation.leeway = secs;
@@ -361,30 +371,26 @@ impl Verifier {
             // default PT2M
             validation.leeway = 120;
         }
-        if let Some(aud) = &self.aud {
-            validation.aud = Some(aud.clone());
-        } else {
-            validation.validate_aud = false;
-        }
+        validation.aud = self.aud.clone();
         let mut iss = HashSet::new();
         iss.insert(self.issuer.clone());
         validation.iss = Some(iss);
+        validation.validate_aud = self.validate_aud;
+        validation.validate_exp = self.validate_exp;
+        validation.validate_nbf = self.validate_nbf;
         if let Some(cid) = &self.cid {
             // This isn't ideal but what we have to do for now
             let cid_tdata = jsonwebtoken::decode::<ClientId>(
                 token,
-                &key.key.to_decoding_key(),
+                &decoding_key,
                 &validation,
             )?;
             if &cid_tdata.claims.cid != cid {
                 bail!("client_id validation failed!")
             }
         }
-        let tdata = jsonwebtoken::decode::<T>(
-            token,
-            &key.key.to_decoding_key(),
-            &validation,
-        )?;
+        let tdata =
+            jsonwebtoken::decode::<T>(token, &decoding_key, &validation)?;
         Ok(tdata)
     }
 }
