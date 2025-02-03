@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.1] - 2025-02-03
+
+### Changed
+
+- Disabled the default features for reqwest.
+
+- Updated the minimum versions of the following dependencies:
+  - reqwest [0.12.12]
+  - reqwest-middleware [0.4.0]
+  - http-cache-surf [0.14.1]
+  - http-cache-reqwest [0.15.1]
+
 ## [0.9.0] - 2024-10-09
 
 ### Added
